@@ -92,3 +92,4 @@ td.comment-cell{min-width:190px;max-width:300px;white-space:pre-wrap;overflow-wr
  .table-heading span{display:block;margin-top:4px}
  .admin-footer{flex-direction:column;gap:4px}
 }
+.empty-cell{text-align:center!important;color:var(--muted)!important;padding:24px!important;font-size:11px!important;background:#fbfdfd!important}
