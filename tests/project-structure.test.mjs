@@ -14,7 +14,7 @@ test("participant page includes the complete consent, observation and questionna
     "elevated-threshold", "reduced-threshold", "concern-duration", "submit-survey",
     "environment-badge", "submission-status", "response-rating-summary"
   ]) {
-    assert.ok(html.includes(required), \`Missing participant page element: \${required}\`);
+    assert.ok(html.includes(required), "Missing participant page element: " + required);
   }
   const ids = [...html.matchAll(/id="([^"]+)"/g)].map(match => match[1]);
   assert.equal(ids.length, new Set(ids).size, "Participant HTML IDs must be unique");
@@ -24,9 +24,9 @@ test("all eight scenarios have distinct visual identity variants and valid basel
   const signatures = new Set();
   for (const id of SCENARIO_IDS) {
     const scenario = SCENARIOS[id];
-    assert.ok(scenario.appearance?.skin && scenario.appearance?.skinDark && scenario.appearance?.cap && scenario.appearance?.blanket, \`\${id} has incomplete visual variant\`);
+    assert.ok(scenario.appearance?.skin && scenario.appearance?.skinDark && scenario.appearance?.cap && scenario.appearance?.blanket, id + " has incomplete visual variant");
     signatures.add([scenario.appearance.skin, scenario.appearance.skinDark, scenario.appearance.cap, scenario.appearance.blanket, scenario.appearance.style].join("|"));
-    assert.ok(Number.isInteger(scenario.baseline) && scenario.baseline > 0, \`\${id} has invalid baseline\`);
+    assert.ok(Number.isInteger(scenario.baseline) && scenario.baseline > 0, id + " has invalid baseline");
   }
   assert.equal(signatures.size, 8);
 });
@@ -57,7 +57,7 @@ test("database policies keep participant submissions private and use a private a
 
 test("server endpoint validates all scenario IDs, presentation order, metadata and rating events", () => {
   const fn = read("../supabase/functions/submit-survey/index.ts");
-  for (const id of SCENARIO_IDS) assert.ok(fn.includes(\`"\${id}"\`));
+  for (const id of SCENARIO_IDS) assert.ok(fn.includes('"' + id + '"'));
   assert.ok(fn.includes("input.presentation_order.some"));
   assert.ok(fn.includes("r.baseline_rr"));
   assert.ok(fn.includes("r.programmed_current_rr"));
@@ -109,12 +109,12 @@ test("admin page contains every element referenced by the dashboard script", () 
   const script = read("../js/admin.js");
   const ids = new Set([...html.matchAll(/id="([^"]+)"/g)].map(match => match[1]));
   const references = [...script.matchAll(/\$\("([^"]+)"\)/g)].map(match => match[1]);
-  for (const id of references) assert.ok(ids.has(id), \`Admin script references missing element: \${id}\`);
+  for (const id of references) assert.ok(ids.has(id), "Admin script references missing element: " + id);
 });
 
 test("administrator dashboard queries submissions only through the authenticated Supabase client", () => {
   const script = read("../js/admin.js");
-  assert.ok(script.includes('supabase.auth.signInWithPassword'));
+  assert.ok(script.includes("supabase.auth.signInWithPassword"));
   assert.ok(script.includes('.from("study_admins")'));
   assert.ok(script.includes('.from("submissions")'));
   assert.ok(script.includes("maybeSingle()"));
