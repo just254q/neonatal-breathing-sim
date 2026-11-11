@@ -4,6 +4,7 @@ const supabaseReady = Boolean(config.supabaseUrl && config.supabasePublishableKe
 const supabase = supabaseReady ? window.supabase.createClient(config.supabaseUrl, config.supabasePublishableKey) : null;
 
 let submissions = [];
+let testSubmissions = [];
 let ratingChart = null;
 let confidenceChart = null;
 
@@ -236,6 +237,50 @@ function renderFinalQuestionnaire() {
     body.appendChild(row);
   }
 }
+function renderTestData() {
+  const summaryBody = $("test-submission-table").querySelector("tbody");
+  const responseBody = $("test-response-table").querySelector("tbody");
+  summaryBody.replaceChildren();
+  responseBody.replaceChildren();
+  $("test-submission-count").textContent = `${testSubmissions.length} test ${testSubmissions.length === 1 ? "submission" : "submissions"}`;
+  $("test-empty-state").hidden = testSubmissions.length > 0;
+  $("test-records-content").hidden = testSubmissions.length === 0;
+
+  if (!testSubmissions.length) return;
+  const sorted = [...testSubmissions].sort((a, b) => new Date(b.submitted_at) - new Date(a.submitted_at));
+  for (const submission of sorted) {
+    const q = submission.final_questions || {};
+    const row = document.createElement("tr");
+    appendCell(row, timeText(submission.submitted_at));
+    appendCell(row, submission.participant_id);
+    appendCell(row, submission.clinical_role);
+    appendCell(row, submission.neonatal_experience);
+    appendCell(row, Array.isArray(submission.responses) ? submission.responses.length : 0);
+    appendCell(row, Array.isArray(submission.presentation_order) ? submission.presentation_order.join(" → ") : submission.presentation_order, "comment-cell");
+    appendCell(row, q.elevated_rate_concern_threshold);
+    appendCell(row, q.reduced_rate_concern_threshold);
+    appendCell(row, q.concern_duration_after_return_to_baseline);
+    appendCell(row, q.other_comments, "comment-cell");
+    summaryBody.appendChild(row);
+  }
+
+  const responses = allResponses(sorted).sort((a, b) => new Date(b.submitted_at) - new Date(a.submitted_at));
+  for (const response of responses) {
+    const row = document.createElement("tr");
+    appendCell(row, timeText(response.submitted_at));
+    appendCell(row, response.participant_id);
+    appendCell(row, `${response.scenario_id} / Cot ${response.cot_number}`);
+    appendCell(row, response.first_rating);
+    appendCell(row, response.final_rating);
+    appendCell(row, response.selection_change_count ?? Math.max(0, (response.rating_events || []).length - 1));
+    appendCell(row, ratingTimeline(response.rating_events), "comment-cell");
+    appendCell(row, response.confidence);
+    appendCell(row, response.unrealistic_baby ? "Realism concern flagged" : "Not flagged");
+    appendCell(row, response.additional_information_needed, "comment-cell");
+    appendCell(row, response.comments, "comment-cell");
+    responseBody.appendChild(row);
+  }
+}
 function renderStats() {
   const rows = allResponses();
   const changed = submissions.filter(submission =>
@@ -264,6 +309,7 @@ function renderAll() {
   renderScenarioTable();
   $("empty-state").hidden = submissions.length > 0;
   $("chart-grid").hidden = submissions.length === 0;
+  renderTestData();
   if (submissions.length) renderCharts();
   else {
     destroyChart(ratingChart); ratingChart = null;
@@ -289,10 +335,11 @@ async function loadAllRows() {
     start += pageSize;
   }
   submissions = allRows.filter(row => row.is_test !== true);
+  testSubmissions = allRows.filter(row => row.is_test === true);
   renderAll();
 }
-function flattenForExport() {
-  return allResponses().map(response => ({
+function flattenForExport(rows = submissions) {
+  return allResponses(rows).map(response => ({
     submission_id: response.submission_id,
     participant_session_id: response.participant_id,
     submitted_at: response.submitted_at,
@@ -330,9 +377,15 @@ function downloadBlob(content, filename, mimeType) {
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 function exportCsv() {
-  const rows = flattenForExport();
+  exportCsvFor(submissions, "neonatal-breathing-survey-results.csv", "research");
+}
+function exportTestCsv() {
+  exportCsvFor(testSubmissions, "neonatal-breathing-survey-test-results.csv", "test");
+}
+function exportCsvFor(sourceRows, filename, recordLabel) {
+  const rows = flattenForExport(sourceRows);
   if (!rows.length) {
-    notice("There are no non-test research responses to export.", "info");
+    notice(`There are no ${recordLabel} responses to export.`, "info");
     return;
   }
   const columns = Object.keys(rows[0]);
@@ -340,21 +393,27 @@ function exportCsv() {
   const csv = [
     columns.map(quote).join(","),
     ...rows.map(row => columns.map(column => quote(row[column])).join(","))
-  ].join("\r\n");
-  downloadBlob("\ufeff" + csv, "neonatal-breathing-survey-results.csv", "text/csv;charset=utf-8");
-  notice("Your CSV export has been prepared.", "success");
+  ].join("\\r\\n");
+  downloadBlob("\\ufeff" + csv, filename, "text/csv;charset=utf-8");
+  notice(`Your ${recordLabel} CSV export has been prepared.`, "success");
 }
 function exportExcel() {
-  const responses = flattenForExport();
+  exportExcelFor(submissions, "neonatal-breathing-survey-results.xlsx", "research");
+}
+function exportTestExcel() {
+  exportExcelFor(testSubmissions, "neonatal-breathing-survey-test-results.xlsx", "test");
+}
+function exportExcelFor(sourceRows, filename, recordLabel) {
+  const responses = flattenForExport(sourceRows);
   if (!responses.length) {
-    notice("There are no non-test research responses to export.", "info");
+    notice(`There are no ${recordLabel} responses to export.`, "info");
     return;
   }
   if (typeof XLSX === "undefined") {
     notice("The Excel export library did not load. Please retry or use the CSV export.", "error");
     return;
   }
-  const summary = submissions.map(submission => ({
+  const summary = sourceRows.map(submission => ({
     submission_id: submission.id,
     participant_session_id: submission.participant_id,
     submitted_at: submission.submitted_at,
@@ -368,8 +427,8 @@ function exportExcel() {
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(summary), "Submissions");
   XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(responses), "Scenario responses");
-  XLSX.writeFile(workbook, "neonatal-breathing-survey-results.xlsx");
-  notice("Your Excel workbook has been prepared.", "success");
+  XLSX.writeFile(workbook, filename);
+  notice(`Your ${recordLabel} Excel workbook has been prepared.`, "success");
 }
 function showLogin() {
   $("login-panel").hidden = false;
@@ -467,4 +526,6 @@ $("filter-baby").addEventListener("change", applyFilters);
 $("filter-rating").addEventListener("change", applyFilters);
 $("export-csv").addEventListener("click", exportCsv);
 $("export-xlsx").addEventListener("click", exportExcel);
+$("export-test-csv").addEventListener("click", exportTestCsv);
+$("export-test-xlsx").addEventListener("click", exportTestExcel);
 populateScenarioFilter();
