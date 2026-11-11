@@ -64,6 +64,8 @@ function updateProgress() {
   $("remaining-label").textContent = completed >= 8 ? "Ready to submit" : `${remaining} ${remaining === 1 ? "scenario" : "scenarios"} remaining`;
   $("progress-fill").style.width = `${(completed / 8) * 100}%`;
   $("progress-track").setAttribute("aria-valuenow", String(completed));
+  $("intro-step-number").textContent = String(current).padStart(2, "0");
+  $("scenario-heading").textContent = completed >= 8 ? "Your final questions are ready" : `Your next observation is ready`;
 }
 function restoreProfile() {
   if (!draft) return;
@@ -118,7 +120,7 @@ function restoreDraftState() {
   const loaded = loadDraft();
   if (!loaded || !loaded.consent_given || !Array.isArray(loaded.responses) || !Array.isArray(loaded.presentation_order)) return false;
   const validOrder = loaded.presentation_order.length === 8 && new Set(loaded.presentation_order).size === 8 && loaded.presentation_order.every(id => SCENARIO_IDS.includes(id));
-  if (!validOrder || loaded.responses.length > 8) return false;
+  if (!validOrder || loaded.responses.length > 8 || loaded.is_test !== TEST_MODE) return false;
   draft = loaded;
   restoreProfile();
   if (draft.responses.length === 8) {
@@ -143,7 +145,8 @@ function paintRating() {
   document.querySelectorAll(".rating-btn").forEach(button => {
     button.setAttribute("aria-pressed", String(button.dataset.rating === rating));
   });
-  $("current-rating").textContent = rating ? `Current rating: ${rating[0].toUpperCase()}${rating.slice(1)}.` : "Not yet rated.";
+  $("current-rating").textContent = rating ? `Selected: ${rating[0].toUpperCase()}${rating.slice(1)}. You can change this while the live observation is running.` : (mode === "live" ? "Choose the response that best reflects your assessment." : "Choose a rating when the live observation begins.");
+  if ($("response-rating-summary")) $("response-rating-summary").textContent = rating ? rating[0].toUpperCase() + rating.slice(1) : "Not yet rated";
   $("save-continue").disabled = !(mode === "ended" && rating && $("confidence").value);
 }
 function addEvent(type, extra = {}) {
@@ -279,40 +282,55 @@ async function submitAll() {
   const button = $("submit-survey"); button.disabled = true; button.textContent = "Submitting…";
   const payload = createSubmissionPayload();
   // Test mode is always local-only, even when production Supabase credentials exist.
+  draft.final_questions = payload.final_questions;
+  draft.last_activity_at = new Date().toISOString();
+  saveDraft();
+
   if (TEST_MODE) {
     try {
       const current = JSON.parse(localStorage.getItem(TEST_STORAGE_KEY) || "[]");
       current.push({ ...payload, submitted_at: new Date().toISOString(), local_preview_only: true });
       localStorage.setItem(TEST_STORAGE_KEY, JSON.stringify(current));
-      localStorage.removeItem(STORAGE_KEY);
-      showThankYou(`TEST ONLY — saved locally in this browser. Nothing was sent to a database. Test record ${current.length}.`);
+      removeDraft();
+      showThankYou({
+        title: "Preview completed",
+        message: "Your test responses have been saved in this browser only. Nothing was sent to the research database.",
+        reference: `Local preview record ${current.length}`
+      });
     } catch {
-      showNotice("The local test record could not be saved by this browser. No database submission was made.", "error");
-      button.disabled = false; button.textContent = "Submit all 8 responses";
+      showNotice("This browser could not save the local preview record. No database submission was made. Your current survey draft has been kept so you can retry.", "error");
+      button.disabled = false; button.textContent = "Retry local save";
     }
     return;
   }
-  if (!supabaseReady) {
-    showNotice("This survey is not connected to its secure database yet. No response has been submitted. Contact the study administrator; do not distribute this deployment link until setup is complete.", "error");
-    button.disabled = false; button.textContent = "Submit all 8 responses";
+  if (!recruitmentReady) {
+    showNotice("Research collection is not enabled for this deployment. Your completed responses remain saved on this device. Contact the study team before attempting to submit again.", "error");
+    button.disabled = false; button.textContent = "Retry when collection is enabled";
     return;
   }
   try {
     const { data, error } = await supabase.functions.invoke("submit-survey", { body: payload });
     if (error) throw error;
     const submissionId = data?.submission_id || data?.id;
-    if (!submissionId) throw new Error("The server did not confirm a submission reference.");
+    if (data?.saved !== true || !submissionId) throw new Error("The server did not confirm that the response was saved.");
     removeDraft();
-    showThankYou(`Anonymous submission reference: ${submissionId}`);
+    showThankYou({
+      title: "Your response has been securely submitted",
+      message: "Thank you. Your eight scenario assessments and final questionnaire have been saved to the study database. You may close this page.",
+      reference: `Anonymous submission reference: ${submissionId}`
+    });
   } catch (error) {
     console.error("Survey submission failed", error);
-    showNotice("We could not confirm that your responses reached the server. Your eight responses remain saved on this device. Check your connection and use Submit all 8 responses to retry. Error: " + (error?.message || "Unknown network error"), "error");
-    button.disabled = false; button.textContent = "Retry submission";
+    showNotice("We could not confirm that your responses reached the study database. Your completed responses remain saved on this device. Check your connection, then select Retry secure submission. Do not start a new survey.", "error");
+    button.disabled = false; button.textContent = "Retry secure submission";
   }
 }
-function showThankYou(reference) {
+function showThankYou({ title, message, reference = "" }) {
   setPanel("thank-you");
+  $("thank-you-heading").textContent = title;
+  $("thank-you-message").textContent = message;
   $("submission-reference").textContent = reference;
+  $("submission-reference").hidden = !reference;
   hideNotice();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -342,24 +360,36 @@ if (config.ethicsContact) $("ethics-contact").textContent = config.ethicsContact
 if (config.ethicsApproval) $("approval-reference").textContent = config.ethicsApproval;
 if (config.dataRetention) $("data-retention").textContent = config.dataRetention;
 if (config.privacyNotice && !config.privacyNotice.includes("[Insert")) $("privacy-copy").textContent = config.privacyNotice;
-if (recruitmentReady) $("approval-note").hidden = true;
-if (TEST_MODE && !recruitmentReady) {
-  showNotice("PREVIEW / TEST MODE: deployment is not configured for research. You can explore the eight scenarios, but responses are stored only in this browser and are never sent to a research database. Do not use this link for nurse recruitment.", "info");
-  $("begin-survey").textContent = "Agree and begin test preview";
-} else if (TEST_MODE) {
-  showNotice("TEST MODE: this session is for technical testing only. It will not be included in research results.", "info");
-} else if (!recruitmentReady) {
-  showNotice("Deployment setup is incomplete. The survey is not ready for nurse recruitment: secure database settings and/or faculty-approved consent details still need to be configured.", "error");
+const status = document.querySelector(".header-status");
+if (TEST_MODE) {
+  $("environment-badge").textContent = "Technical preview · local only";
+  $("consent-label").textContent = "I understand this is a technical preview only. My test responses will remain in this browser and will not be sent to the research database.";
+  $("begin-survey").textContent = "Start test preview";
+  $("submit-survey").textContent = "Finish test preview";
+  $("submission-status").textContent = "Preview only: your eight scenario responses and final answers will be saved in this browser. They will not be sent to the research database.";
+  $("new-preview").hidden = false;
+  $("new-preview").textContent = "Start a new test preview";
+  status?.classList.remove("collect-mode");
+  showNotice("TECHNICAL PREVIEW — This version is for testing the simulator only. Responses are saved locally in this browser and are not sent to the research database. Do not use this link to recruit participants.", "info");
+} else if (recruitmentReady) {
+  $("environment-badge").textContent = "Research collection active";
+  $("submission-status").textContent = "When you submit, all eight scenario responses and the final questionnaire will be securely sent together to the study database.";
+  $("new-preview").hidden = true;
+  status?.classList.add("collect-mode");
+  $("approval-note").hidden = true;
+} else {
+  $("environment-badge").textContent = "Research collection unavailable";
+  $("begin-survey").textContent = "Study not yet open";
+  $("begin-survey").disabled = true;
+  $("new-preview").hidden = true;
+  status?.classList.remove("collect-mode");
+  showNotice("Research collection is not enabled. The study team must complete the approved consent information and server configuration before participants can begin.", "error");
 }
 $("consent-check").addEventListener("change", () => {
   $("begin-survey").disabled = !$("consent-check").checked || (!recruitmentReady && !TEST_MODE);
 });
 $("clinical-role").addEventListener("change", persistProfile);
 $("neonatal-experience").addEventListener("change", persistProfile);
-["elevated-threshold", "reduced-threshold", "concern-duration", "final-comments"].forEach(id => {
-  $(id).addEventListener("input", persistFinalQuestions);
-  $(id).addEventListener("change", persistFinalQuestions);
-});
 ["elevated-threshold", "reduced-threshold", "concern-duration", "final-comments"].forEach(id => {
   $(id).addEventListener("input", persistFinalQuestions);
   $(id).addEventListener("change", persistFinalQuestions);
@@ -383,8 +413,13 @@ document.addEventListener("keydown", event => {
 });
 window.addEventListener("resize", () => { if (engine && scenario) { drawBaby($("baby"), engine); drawTrace($("trace"), engine, scenario.baseline); } });
 window.matchMedia?.("(prefers-color-scheme: dark)")?.addEventListener?.("change", refreshCanvasColors);
-if (!TEST_MODE && restoreDraftState()) $("consent-check").checked = true;
+if (restoreDraftState()) $("consent-check").checked = true;
 else setPanel("consent-panel");
 refreshCanvasColors();
-$("new-preview")?.addEventListener("click", () => { localStorage.removeItem(TEST_STORAGE_KEY); localStorage.removeItem(STORAGE_KEY); location.href = location.pathname + "?test=1"; });
+$("new-preview")?.addEventListener("click", () => {
+  if (!TEST_MODE) return;
+  removeDraft();
+  try { localStorage.removeItem(TEST_STORAGE_KEY); } catch { /* local test storage may be unavailable */ }
+  location.href = location.pathname + "?test=1";
+});
 requestAnimationFrame(animateFrame);
