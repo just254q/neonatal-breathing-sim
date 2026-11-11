@@ -36,7 +36,7 @@
 
 ## Research release state
 
-**Research data collection is not open.** The participant site runs in local-only technical preview mode. The Edge Function must remain disabled until faculty/ethics approval, data-location approval, clinical review, and final consent language are confirmed.
+**Official research data collection is not open.** The main participant site stores completed runs in Supabase as test records. The optional `?test=1` route remains local-only. The Edge Function will not create official research records until faculty/ethics approval, data-location approval, clinical review, final consent wording and server-side release settings are confirmed.
 
 ## Remaining owner tasks
 
