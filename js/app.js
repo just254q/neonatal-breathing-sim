@@ -395,7 +395,9 @@ if (LOCAL_TEST_MODE) {
   $("consent-label").textContent = "I understand this is an internal test run. My completed responses will be stored in the study database as test records and excluded from official research summaries.";
   $("begin-survey").textContent = "Start database test";
   $("submit-survey").textContent = "Submit test responses";
-  $("submission-status").textContent = "Database test mode: the complete eight-scenario response package and final questionnaire will be stored in Supabase and marked as a test record. It will not appear in official research summaries.";
+  $("submission-status").textContent = "Database test mode: the complete eight-scenario response package and final questionnaire will be stored in Supabase and marked as a test record. In-progress answers remain in this open tab until submission; do not refresh or close the page before finishing.";
+  $("privacy-copy").textContent = "Database test mode: when you complete the full survey and submit it, the eight scenario responses and final questionnaire are sent to the study's Supabase database in Mumbai, India and marked as test data. They are visible only to an authorized study administrator and are excluded from official research summaries. In-progress answers are held in this open page until you submit; they are not saved to this browser's local storage. Do not enter real participant or patient information.";
+  $("approval-note").textContent = "INTERNAL DATABASE TEST ONLY — Completed test runs are stored in the study database with is_test=true. These records are not official research data and must not be used for participant recruitment. The participant information, consent wording, ethics reference and privacy details still require faculty approval.";
   $("new-preview").hidden = false;
   $("new-preview").textContent = "Start another database test";
   status?.classList.remove("collect-mode");
