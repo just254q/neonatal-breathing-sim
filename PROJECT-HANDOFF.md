@@ -17,7 +17,7 @@
 - Green/yellow/red assessment controls and timestamped rating changes.
 - Per-scenario confidence, realism and comment questions.
 - Final questionnaire.
-- Local preview mode and recoverable in-progress browser draft.
+- Database-backed test mode for completed runs, plus an explicitly local-only `?test=1` sandbox.
 - Supabase database schema, row-level security and secure submission Edge Function.
 - Authenticated, allow-listed administrator dashboard with summaries, filters, CSV export and Excel export.
 - Automated tests and GitHub Pages deployment workflow.
