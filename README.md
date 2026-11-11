@@ -1,59 +1,63 @@
 # Newborn Breathing Observation Survey
 
-An eight-scenario, browser-based neonatal breathing observation simulation for controlled technical preview and future faculty-approved research use.
+A browser-based neonatal breathing observation simulator with eight randomized scenarios, intended for technical preview and later faculty-approved research deployment.
 
-## Current status
+## Current deployment status
 
-This repository hosts a **technical preview only**. The public configuration intentionally has no Supabase URL or key and contains draft consent placeholders. The participant flow therefore stores test activity only in the participant's browser and does not submit research responses to a database. Do not use this site for nurse recruitment or official data collection until the faculty-approved consent information, institution-approved database, secure server endpoint, and clinical review are complete.
+This is a **technical preview only**. The public `config.js` intentionally contains no Supabase URL or public key, and its consent information still contains faculty-approval placeholders. The site therefore automatically uses local test mode. Responses are saved only in browser local storage; no research data are submitted to a server.
+
+**Do not use this preview for nurse recruitment or official research data collection.** Before recruitment, the study team must obtain faculty/ethics approval, approve the consent text and data-location statement, review the simulated stimuli with neonatal clinicians, provision an owner-controlled database and secure submission endpoint, configure authentication and administrator access, and complete end-to-end security tests.
 
 ## Features
 
-- Eight randomized newborn scenarios with stable scenario IDs and distinct breathing patterns.
-- Animated baby visualization, rolling respiratory-rate graph, usual-rate reference line, and seesaw indicator.
-- Thirty-second live observation period, changeable green/yellow/red ratings, timestamped selections, confidence and realism questions.
-- Final questionnaire, local draft recovery, and a private administrator-dashboard shell.
-- Supabase schema and Edge Function source are retained in this repository for owner-managed future setup; no service-role key or database secret is published.
+- Eight randomized newborn scenarios with stable identifiers and different respiratory-rate patterns.
+- Animated newborn illustration, breathing movement, rolling respiratory-rate history, usual-rate dashed baseline and seesaw indicator.
+- Eight-minute history and 30-second live observation per scenario.
+- Green/yellow/red rating selection with timestamped changes, confidence, realism feedback and free-text comments.
+- Final respiratory-rate threshold questionnaire and local draft recovery.
+- Administrator dashboard shell with filtering, charts and CSV/XLSX exports. It requires a separately configured Supabase project and an allow-listed administrator account; it will not show research data in this preview.
+- GitHub Actions workflow for automatic GitHub Pages deployment.
 
-## Open the preview
+## Open the site
 
-The GitHub Pages preview will be available at:
+After the GitHub Pages workflow completes, the technical preview will be available at:
 
 `https://just254q.github.io/neonatal-breathing-sim/`
 
-Append `?test=1` to force technical test mode. In the current unconfigured build, preview mode is selected automatically and responses remain in browser local storage.
+The dashboard shell is at:
 
-## Run locally
+`https://just254q.github.io/neonatal-breathing-sim/admin.html`
 
-Requires Python 3 and Node.js 20+.
+## Local run and tests
+
+Requires Node.js 20+ and Python 3.
 
 ```bash
 npm test
 npm run serve
 ```
 
-Then open `http://localhost:8080/?test=1`.
+Open `http://localhost:8080/?test=1`. Test submissions remain in local browser storage.
 
-## Source layout
+## Project structure
 
-- `index.html`: participant study information, consent and survey flow.
-- `js/scenarios.js`: eight scenario definitions and randomization.
-- `js/simulator.js`: breathing engine and canvas visualization.
-- `js/app.js`: participant workflow, event timestamps, draft persistence and submission logic.
-- `admin.html`, `js/admin.js`, `css/admin.css`: authenticated dashboard shell and exports.
-- `config.js`: public frontend configuration only. Never place service-role or secret keys here.
-- `supabase/migrations/001_schema.sql`: database schema and access controls.
-- `supabase/functions/submit-survey/index.ts`: server-side submission validation; deploy only to an owner-controlled Supabase project.
-- `tests/`: automated local tests.
-- `.github/workflows/pages.yml`: GitHub Pages deployment workflow.
+- `index.html`: participant information, consent and eight-scenario survey flow.
+- `js/scenarios.js`: scenario definitions, metadata and randomization.
+- `js/simulator.js`: breathing engine, baby animation and graph rendering.
+- `js/app.js`: survey flow, response events, local draft storage and test-mode completion.
+- `admin.html`, `js/admin.js`, `css/admin.css`: authenticated dashboard interface.
+- `config.js`: public frontend configuration placeholders only.
+- `supabase/migrations/001_schema.sql`: draft database schema and access-control policies for future owner-managed setup.
+- `tests/`: automated local logic and structure tests.
+- `.github/workflows/pages.yml`: static-site deployment workflow.
 
-## GitHub Pages
+## Safety and data security
 
-Repository Settings → Pages → Build and deployment → select **GitHub Actions**. The workflow on pushes to `main` deploys the static frontend. It intentionally excludes Supabase database migrations and Edge Function source from the hosted site artifact.
+- Never place a Supabase service-role key or any secret in this repository or in browser JavaScript.
+- The administrator dashboard relies on Supabase authentication plus a database administrator allow-list. A hidden page URL is not an access control.
+- The database migration is not a deployed backend. No submission Edge Function has been deployed or connected in this repository.
+- The respiratory scenarios are experimental stimuli, not validated clinical thresholds, diagnostic tools, or clinical advice. Obtain neonatal-clinical review before research use.
 
-## Research-use requirements
+## Provenance
 
-Before official recruitment, obtain faculty/ethics approval, fill every consent placeholder in `config.js`, secure approval for data residency and retention, review the experimental respiratory stimuli with neonatal clinicians, provision an owner-controlled Supabase project, apply the migration, deploy and test the Edge Function, and verify RLS/admin access. Never publish any Supabase service-role or secret key. See `DEPLOYMENT-CHECKLIST.md` and `PROJECT-HANDOFF.md` for the full checklist.
-
-## Acknowledgement / provenance
-
-This is a separately hosted implementation package prepared for the neonatal breathing-observation project. The teammate-owned repository `iyanuoj-cloud/Clinician-rating-sim_v1` has not been modified. Confirm the original author's permission and any required attribution before wider redistribution or research use.
+This is a separately hosted project package. The original teammate-owned repository `iyanuoj-cloud/Clinician-rating-sim_v1` has not been modified. Confirm the original author's permission and any required attribution before public redistribution or research use.
