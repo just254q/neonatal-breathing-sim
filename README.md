@@ -60,7 +60,7 @@ npm test
 npm run serve
 ```
 
-Open `http://localhost:8080/?test=1`. Test responses stay in local browser storage and are not sent to Supabase.
+Open `http://localhost:8080/` to use database-backed test mode when the public Supabase URL and publishable key are configured. The optional `?test=1` route is a local-only sandbox; records from that route stay in browser local storage and are not sent to Supabase.
 
 ## Project structure
 
