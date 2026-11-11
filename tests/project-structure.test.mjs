@@ -36,6 +36,7 @@ test("public configuration contains no privileged credential and keeps research 
   assert.ok(config.includes('supabaseUrl: "https://wpcgwnrtkcyldzxnorto.supabase.co"'));
   assert.ok(config.includes('supabasePublishableKey: "sb_publishable_'));
   assert.ok(config.includes("researchCollectionEnabled: false"));
+  assert.ok(config.includes("databaseTestMode: true"));
   assert.ok(!/sb_secret|service_role|service-role/i.test(config));
   assert.ok(!/supabaseSecretKey\s*:/.test(config));
   assert.ok(config.includes("[Insert faculty-approved study title]"));
@@ -66,9 +67,12 @@ test("server endpoint validates all scenario IDs, presentation order, metadata a
   assert.ok(fn.includes('req.headers.get("apikey")'));
   assert.ok(fn.includes("23505"));
   assert.ok(fn.includes("rating_events"));
-  assert.ok(fn.includes('Deno.env.get("RESEARCH_COLLECTION_ENABLED")!=="true"'));
+  assert.ok(fn.includes('Deno.env.get("RESEARCH_COLLECTION_ENABLED")==="true"'));
   assert.ok(fn.includes('Deno.env.get("APPROVED_CONSENT_VERSION")'));
-  assert.ok(fn.includes("input.consent_version!==approvedConsentVersion"));
+  assert.ok(fn.includes("researchCollectionEnabled && input.consent_version!==approvedConsentVersion"));
+  assert.ok(fn.includes("const isTest=!researchCollectionEnabled;"));
+  assert.ok(fn.includes('record_type:isTest?"test":"research"'));
+  assert.ok(!fn.includes("input.is_test"));
 });
 
 test("final questionnaire answers are saved and restored with an interrupted draft", () => {
@@ -98,7 +102,7 @@ test("an interrupted preview draft is restorable without mixing test and researc
 test("local preview cannot send a submission to Supabase", () => {
   const app = read("../js/app.js");
   const start = app.indexOf("async function submitAll()");
-  const testBranch = app.indexOf("if (TEST_MODE) {", start);
+  const testBranch = app.indexOf("if (LOCAL_TEST_MODE) {", start);
   const invoke = app.indexOf('supabase.functions.invoke("submit-survey"', start);
   assert.ok(start >= 0 && testBranch > start && invoke > testBranch);
   assert.ok(app.indexOf("return;", testBranch) < invoke);
@@ -129,4 +133,26 @@ test("GitHub Pages deploys only the public frontend and tests pull requests befo
   assert.ok(workflow.includes("cp -R css js dist/"));
   assert.ok(workflow.includes("actions/deploy-pages@v4"));
   assert.ok(!workflow.includes("cp -R supabase"));
+});
+
+test("database test mode sends completed responses to Supabase and does not persist response drafts locally", () => {
+  const app = read("../js/app.js");
+  assert.ok(app.includes("config.databaseTestMode === true"));
+  assert.ok(app.includes("const DATABASE_TEST_MODE"));
+  assert.ok(app.includes("if (!draft || DATABASE_TEST_MODE) return;"));
+  assert.ok(app.includes('supabase.functions.invoke("submit-survey"'));
+  assert.ok(app.includes("Test submission saved to the database"));
+  assert.ok(app.includes("record_type !== (DATABASE_TEST_MODE ? \"test\" : \"research\")"));
+});
+
+test("administrator separates test submissions from research and exposes test-result exports", () => {
+  const script = read("../js/admin.js");
+  const html = read("../admin.html");
+  assert.ok(script.includes("testSubmissions = allRows.filter(row => row.is_test === true)"));
+  assert.ok(script.includes("function renderTestData()"));
+  assert.ok(script.includes("function exportTestCsv()"));
+  assert.ok(script.includes("function exportTestExcel()"));
+  for (const id of ["test-submission-count", "test-submission-table", "test-response-table", "export-test-csv", "export-test-xlsx"]) {
+    assert.ok(html.includes('id="' + id + '"'), "Missing test result control: " + id);
+  }
 });
