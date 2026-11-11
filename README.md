@@ -68,7 +68,7 @@ Open `http://localhost:8080/` to use database-backed test mode when the public S
 - `css/styles.css`: participant design system and responsive layout.
 - `js/scenarios.js`: eight stable scenario definitions, metadata and randomization.
 - `js/simulator.js`: breathing engine, newborn animation and respiratory-rate graph.
-- `js/app.js`: participant workflow, timestamps, local draft recovery and submission handoff.
+- `js/app.js`: participant workflow, timestamps, local-only sandbox and database-backed test/research submission handoff.
 - `admin.html`, `js/admin.js`, `css/admin.css`: authenticated research dashboard and exports.
 - `config.js`: public URL, publishable key and study release settings only.
 - `supabase/migrations/001_schema.sql`: database schema and row-level security policies.
