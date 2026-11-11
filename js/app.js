@@ -381,4 +381,5 @@ window.matchMedia?.("(prefers-color-scheme: dark)")?.addEventListener?.("change"
 if (!TEST_MODE && restoreDraftState()) $("consent-check").checked = true;
 else setPanel("consent-panel");
 refreshCanvasColors();
+$("new-preview")?.addEventListener("click", () => { localStorage.removeItem(TEST_STORAGE_KEY); localStorage.removeItem(STORAGE_KEY); location.href = location.pathname + "?test=1"; });
 requestAnimationFrame(animateFrame);
