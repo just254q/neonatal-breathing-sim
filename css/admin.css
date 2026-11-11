@@ -93,3 +93,9 @@ td.comment-cell{min-width:190px;max-width:300px;white-space:pre-wrap;overflow-wr
  .admin-footer{flex-direction:column;gap:4px}
 }
 .empty-cell{text-align:center!important;color:var(--muted)!important;padding:24px!important;font-size:11px!important;background:#fbfdfd!important}
+
+.test-data-section{border-color:#d6d1e8;background:linear-gradient(180deg,#fff 0%,#fdfcff 100%)}
+.test-data-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.test-count{display:inline-flex;align-items:center;padding:7px 10px;border:1px solid #ded9ef;border-radius:999px;background:#f4f1fb;color:#655493;font-size:10px;font-weight:700}
+.test-response-heading{margin-top:20px}
+@media(max-width:620px){.test-data-actions{justify-content:flex-start;width:100%}.test-data-actions button{flex:1}.test-count{width:100%;justify-content:center}}
