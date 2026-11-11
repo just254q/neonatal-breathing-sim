@@ -176,6 +176,42 @@
           </table>
         </div>
       </section>
+
+      <section class="panel dashboard-section test-data-section">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Internal quality assurance</p>
+            <h2>Database test submissions</h2>
+            <p class="muted tiny">These records are stored in Supabase but are marked as test data and are excluded from official research summaries and exports.</p>
+          </div>
+          <div class="test-data-actions">
+            <span id="test-submission-count" class="test-count">0 test submissions</span>
+            <button id="export-test-csv" class="secondary">Export test CSV</button>
+            <button id="export-test-xlsx" class="secondary">Export test Excel</button>
+          </div>
+        </div>
+        <div id="test-empty-state" class="empty-state">
+          <span class="empty-icon" aria-hidden="true">T</span>
+          <strong>No database test submissions yet</strong>
+          <p>Complete the participant survey using the main website. Completed database test runs will appear here after the server confirms the save.</p>
+        </div>
+        <div id="test-records-content" hidden>
+          <div class="table-heading"><h3>Test submission overview</h3><span class="muted tiny">One row per completed test run</span></div>
+          <div class="table-scroll">
+            <table id="test-submission-table">
+              <thead><tr><th>Submitted</th><th>Anonymous session</th><th>Clinical role</th><th>Neonatal experience</th><th>Responses</th><th>Presentation order</th><th>Elevated-rate threshold</th><th>Reduced-rate threshold</th><th>Concern duration</th><th>Final comments</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="table-heading test-response-heading"><h3>Individual test scenario responses</h3><span class="muted tiny">Ratings, timing, confidence and comments</span></div>
+          <div class="table-scroll">
+            <table id="test-response-table">
+              <thead><tr><th>Submitted</th><th>Anonymous session</th><th>Scenario</th><th>Initial rating</th><th>Final rating</th><th>Changes</th><th>Rating-event timeline</th><th>Confidence</th><th>Realism feedback</th><th>Additional information</th><th>Comments</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
     </section>
 
     <footer class="admin-footer">
