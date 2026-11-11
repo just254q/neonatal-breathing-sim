@@ -3,15 +3,17 @@ import { BreathingEngine, drawBaby, drawTrace, refreshCanvasColors } from "./sim
 
 const $ = id => document.getElementById(id);
 const config = window.APP_CONFIG || {};
-// An unconfigured build is automatically a safe local preview. This keeps the demo usable
-// while ensuring it cannot submit research responses until a database is explicitly configured.
-const TEST_MODE = new URLSearchParams(location.search).get("test") === "1" ||
-  !config.supabaseUrl || !config.supabasePublishableKey || config.researchCollectionEnabled !== true;
+const supabaseReady = Boolean(config.supabaseUrl && config.supabasePublishableKey && window.supabase?.createClient);
+const forcedLocalPreview = new URLSearchParams(location.search).get("test") === "1";
+const DATABASE_TEST_MODE = !forcedLocalPreview && supabaseReady &&
+  config.databaseTestMode === true && config.researchCollectionEnabled !== true;
+const LOCAL_TEST_MODE = forcedLocalPreview || !supabaseReady ||
+  (config.researchCollectionEnabled !== true && !DATABASE_TEST_MODE);
+const TEST_MODE = DATABASE_TEST_MODE || LOCAL_TEST_MODE;
 const CONSENT_VERSION = config.consentVersion || "draft-1.0";
-const VERSION = config.appVersion || "0.2.2";
+const VERSION = config.appVersion || "0.4.0";
 const STORAGE_KEY = "newborn-breathing-survey-draft-v1";
 const TEST_STORAGE_KEY = "newborn-breathing-survey-test-submissions-v1";
-const supabaseReady = Boolean(config.supabaseUrl && config.supabasePublishableKey && window.supabase?.createClient);
 const consentDetailsReady = [config.studyTitle, config.studyContact, config.ethicsContact, config.ethicsApproval, config.dataRetention, config.privacyNotice]
   .every(value => typeof value === "string" && value.trim() && !value.includes("[Insert"));
 const recruitmentReady = supabaseReady && config.researchCollectionEnabled === true && consentDetailsReady && CONSENT_VERSION !== "draft-1.0";
@@ -42,11 +44,12 @@ function showNotice(message, type = "info") {
 }
 function hideNotice() { $("notice").hidden = true; }
 function saveDraft() {
-  if (!draft) return;
+  if (!draft || DATABASE_TEST_MODE) return;
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(draft)); }
   catch { showNotice("This browser could not save a local draft. Please avoid refreshing or closing this page before submitting.", "error"); }
 }
 function loadDraft() {
+  if (DATABASE_TEST_MODE) return null;
   try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : null; }
   catch { return null; }
 }
@@ -288,12 +291,11 @@ async function submitAll() {
   }
   const button = $("submit-survey"); button.disabled = true; button.textContent = "Submitting…";
   const payload = createSubmissionPayload();
-  // Test mode is always local-only, even when production Supabase credentials exist.
   draft.final_questions = payload.final_questions;
   draft.last_activity_at = new Date().toISOString();
   saveDraft();
 
-  if (TEST_MODE) {
+  if (LOCAL_TEST_MODE) {
     try {
       const current = JSON.parse(localStorage.getItem(TEST_STORAGE_KEY) || "[]");
       current.push({ ...payload, submitted_at: new Date().toISOString(), local_preview_only: true });
@@ -310,9 +312,9 @@ async function submitAll() {
     }
     return;
   }
-  if (!recruitmentReady) {
-    showNotice("Research collection is not enabled for this deployment. Your completed responses remain saved on this device. Contact the study team before attempting to submit again.", "error");
-    button.disabled = false; button.textContent = "Retry when collection is enabled";
+  if (!supabaseReady || (!DATABASE_TEST_MODE && !recruitmentReady)) {
+    showNotice("The secure submission service is not open for this session. No response has been submitted. Contact the study administrator.", "error");
+    button.disabled = false; button.textContent = "Submission unavailable";
     return;
   }
   try {
@@ -320,15 +322,25 @@ async function submitAll() {
     if (error) throw error;
     const submissionId = data?.submission_id || data?.id;
     if (data?.saved !== true || !submissionId) throw new Error("The server did not confirm that the response was saved.");
+    if (data?.record_type !== (DATABASE_TEST_MODE ? "test" : "research")) {
+      throw new Error("The server returned an unexpected record status. Please contact the study administrator.");
+    }
     removeDraft();
-    showThankYou({
+    showThankYou(DATABASE_TEST_MODE ? {
+      title: "Test submission saved to the database",
+      message: "Your eight scenario assessments and final questionnaire are now stored in Supabase as a test record. They are excluded from official research summaries.",
+      reference: `Database test reference: ${submissionId}`
+    } : {
       title: "Your response has been securely submitted",
       message: "Thank you. Your eight scenario assessments and final questionnaire have been saved to the study database. You may close this page.",
       reference: `Anonymous submission reference: ${submissionId}`
     });
   } catch (error) {
     console.error("Survey submission failed", error);
-    showNotice("We could not confirm that your responses reached the study database. Your completed responses remain saved on this device. Check your connection, then select Retry secure submission. Do not start a new survey.", "error");
+    const recovery = DATABASE_TEST_MODE
+      ? "The responses remain in this open page only. Do not refresh or close it. Check your connection, then retry the submission."
+      : "Your completed responses remain saved on this device. Check your connection, then retry the secure submission.";
+    showNotice("We could not confirm that your responses reached the study database. " + recovery, "error");
     button.disabled = false; button.textContent = "Retry secure submission";
   }
 }
@@ -368,16 +380,26 @@ if (config.ethicsApproval) $("approval-reference").textContent = config.ethicsAp
 if (config.dataRetention) $("data-retention").textContent = config.dataRetention;
 if (config.privacyNotice && !config.privacyNotice.includes("[Insert")) $("privacy-copy").textContent = config.privacyNotice;
 const status = document.querySelector(".header-status");
-if (TEST_MODE) {
-  $("environment-badge").textContent = "Technical preview · local only";
-  $("consent-label").textContent = "I understand this is a technical preview only. My test responses will remain in this browser and will not be sent to the research database.";
-  $("begin-survey").textContent = "Start test preview";
-  $("submit-survey").textContent = "Finish test preview";
-  $("submission-status").textContent = "Preview only: your eight scenario responses and final answers will be saved in this browser. They will not be sent to the research database.";
+if (LOCAL_TEST_MODE) {
+  $("environment-badge").textContent = "Local preview · not stored in database";
+  $("consent-label").textContent = "I understand this is a local technical preview only. My test responses will remain in this browser and will not be sent to the research database.";
+  $("begin-survey").textContent = "Start local preview";
+  $("submit-survey").textContent = "Finish local preview";
+  $("submission-status").textContent = "Local preview only: this run will not be submitted to Supabase. Open the main study link without ?test=1 to use database-backed test mode.";
   $("new-preview").hidden = false;
-  $("new-preview").textContent = "Start a new test preview";
+  $("new-preview").textContent = "Start a new local preview";
   status?.classList.remove("collect-mode");
-  showNotice("TECHNICAL PREVIEW — This version is for testing the simulator only. Responses are saved locally in this browser and are not sent to the research database. Do not use this link to recruit participants.", "info");
+  showNotice("LOCAL PREVIEW — This optional mode stores a test copy only in this browser. Use the main study link for database-backed test submissions.", "info");
+} else if (DATABASE_TEST_MODE) {
+  $("environment-badge").textContent = "Database test mode · test records";
+  $("consent-label").textContent = "I understand this is an internal test run. My completed responses will be stored in the study database as test records and excluded from official research summaries.";
+  $("begin-survey").textContent = "Start database test";
+  $("submit-survey").textContent = "Submit test responses";
+  $("submission-status").textContent = "Database test mode: the complete eight-scenario response package and final questionnaire will be stored in Supabase and marked as a test record. It will not appear in official research summaries.";
+  $("new-preview").hidden = false;
+  $("new-preview").textContent = "Start another database test";
+  status?.classList.remove("collect-mode");
+  showNotice("DATABASE TEST MODE — Completed test submissions are stored in Supabase. They are marked as test records and excluded from official research summaries. Do not use this mode for participant recruitment.", "info");
 } else if (recruitmentReady) {
   $("environment-badge").textContent = "Research collection active";
   $("submission-status").textContent = "When you submit, all eight scenario responses and the final questionnaire will be securely sent together to the study database.";
@@ -426,7 +448,11 @@ refreshCanvasColors();
 $("new-preview")?.addEventListener("click", () => {
   if (!TEST_MODE) return;
   removeDraft();
-  try { localStorage.removeItem(TEST_STORAGE_KEY); } catch { /* local test storage may be unavailable */ }
-  location.href = location.pathname + "?test=1";
+  if (LOCAL_TEST_MODE) {
+    try { localStorage.removeItem(TEST_STORAGE_KEY); } catch { /* local test storage may be unavailable */ }
+    location.href = location.pathname + "?test=1";
+  } else {
+    location.href = location.pathname;
+  }
 });
 requestAnimationFrame(animateFrame);
