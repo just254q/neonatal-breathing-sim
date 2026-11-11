@@ -76,6 +76,18 @@ Deno.serve(async(req)=>{
   }
   if(origin && !ALLOWED_ORIGINS.has(origin))return response({error:"Origin not allowed"},403);
   if(req.method!=="POST")return response({error:"Method not allowed"},405,origin);
+
+  // Fail closed on the server. A browser-side setting is not an access-control boundary.
+  // The study owner must set these Edge Function secrets only after faculty approval:
+  // RESEARCH_COLLECTION_ENABLED=true and APPROVED_CONSENT_VERSION=<approved version>.
+  if(Deno.env.get("RESEARCH_COLLECTION_ENABLED")!=="true"){
+    return response({error:"Research response collection is not enabled for this study."},503,origin);
+  }
+  const approvedConsentVersion=(Deno.env.get("APPROVED_CONSENT_VERSION")??"").trim();
+  if(!approvedConsentVersion){
+    return response({error:"The approved consent version is not configured on the submission service."},503,origin);
+  }
+
   const suppliedKey=req.headers.get("apikey")??"";
   const allowedKeys=getAllowedPublishableKeys();
   if(!allowedKeys.length||!allowedKeys.includes(suppliedKey))return response({error:"A valid project publishable key is required"},401,origin);
@@ -85,6 +97,9 @@ Deno.serve(async(req)=>{
   try{input=JSON.parse(raw);}catch{return response({error:"Invalid JSON"},400,origin);}
   const problem=validateSubmission(input);
   if(problem)return response({error:problem},400,origin);
+  if(input.consent_version!==approvedConsentVersion){
+    return response({error:"The submitted consent version does not match the currently approved study information."},409,origin);
+  }
 
   const url=Deno.env.get("SUPABASE_URL");
   let secretKey:string|undefined;
