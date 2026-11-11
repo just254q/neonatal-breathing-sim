@@ -41,10 +41,10 @@
     <p>The study response does not ask for your name, email address, staff number, patient details, or other direct identifiers. A random session code is generated to group the eight scenario responses into one submission. Please do not enter identifying information in free-text comments. The response data will be stored in the project's access-controlled research database and will be accessible only to approved study administrators. Website, hosting, database, and content-delivery providers may also process technical connection information (for example, IP address, browser/device details, and timestamps) in operational logs; these logs are separate from the research response record. Approved data and provider-log retention/storage details: <strong id="data-retention">[Insert approved retention period, storage jurisdiction, and technical-log handling]</strong>. The research responses are collected without direct identifiers, but provider logs may not be anonymous. Confirm the institution-approved withdrawal process before recruitment; it may not be possible to identify and withdraw a response after final submission.</p>
     <p>The simulations are experimental stimuli and are not clinical guidance, diagnostic tools, or validated respiratory thresholds. They should not be used to make decisions about real patients.</p>
     <h3>Voluntary participation and contacts</h3>
-    <p>You may decline to participate without penalty. For questions about the study, contact: <strong id="study-contact">[Insert principal investigator name and institutional email]</strong>. For questions about participant rights, contact: <strong id="ethics-contact">[Insert faculty ethics committee contact]</strong> (<span id="ethics-approval">[Insert approval/reference number]</span>).</p>
-    <p class="notice warning" id="preview-warning" hidden>This is a technical preview. Responses remain in this browser only and are not submitted to a research database. Do not use this preview for participant recruitment.</p>
+    <p>You may decline to participate without penalty. For questions about the study, contact: <strong id="study-contact">[Insert principal investigator name and institutional email]</strong>. For questions about participant rights, contact: <strong id="ethics-contact">[Insert faculty ethics committee contact]</strong> (<span id="approval-reference">[Insert approval/reference number]</span>).</p>
+    <p class="approval-note" id="approval-note">This information sheet and consent wording are a draft for faculty/ethics review. Replace all bracketed contact and approval details, confirm data retention and withdrawal arrangements, and obtain required approvals before recruiting participants.</p>
 
-    <div class="profile-grid">
+    <div class="form-grid">
       <label>Clinical role (optional)
         <select id="clinical-role">
           <option value="">Prefer not to say / not provided</option>
@@ -68,22 +68,22 @@
     <button class="primary" id="begin-survey" disabled>Agree and begin survey</button>
   </section>
 
-  <section class="panel" id="scenario-intro" hidden>
+  <section class="panel intro-panel" id="scenario-intro" hidden>
     <div class="progress-wrap"><div class="progress-head"><strong id="progress-label">Scenario 1 of 8</strong><span id="remaining-label">8 scenarios remaining</span></div><div id="progress-track" class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="8" aria-valuenow="0"><span id="progress-fill"></span></div></div>
     <h2 id="scenario-heading">Next observation</h2>
     <p>You will see the last eight minutes of breathing, followed by 30 seconds of live animation. Select the assessment that best reflects what you would do.</p>
     <button class="primary" id="start-scenario">Start observation</button>
   </section>
 
-  <section id="sim" hidden>
-    <div class="topline"><div><p class="eyebrow">Live observation</p><h2 id="cot-heading">Cot 1</h2></div><div class="usual">Usual breathing rate <strong><span id="baseline-number">40</span>/min</strong></div></div>
+  <section id="sim" class="sim-shell" hidden>
+    <div class="scenario-top"><div><p class="eyebrow">Live observation</p><h2 id="cot-heading">Cot 1</h2></div><div class="baseline-display">Usual breathing rate <strong><span id="baseline-number">40</span>/min</strong></div></div>
     <div class="stage"><canvas id="baby" aria-label="Animated newborn lying in a cot and breathing"></canvas></div>
-    <section class="graph-panel"><div class="graph-head"><strong>Breathing rate over the last 8 minutes</strong><span id="clock" aria-live="polite">Preparing observation</span></div><canvas id="trace" aria-label="Graph of simulated breathing rate"></canvas><div class="legend"><span><i class="line-key"></i> Estimated breathing rate</span><span><i class="baseline-key"></i> Usual rate</span><span><i class="seesaw-key"></i> Chest and belly out of sync</span></div></section>
-    <section class="rating-panel"><h2>What would you do?</h2><p class="muted">Choose the response that best matches your clinical judgement. You may change it during the observation.</p>
-      <div class="rating-grid" role="group" aria-label="Clinical concern rating">
-        <button class="rating-btn green" data-rating="green" disabled><strong>Green</strong><span>No concern. Routine checks continue.</span></button>
-        <button class="rating-btn yellow" data-rating="yellow" disabled><strong>Yellow</strong><span>Concerning. I would want someone to review the baby soon.</span></button>
-        <button class="rating-btn red" data-rating="red" disabled><strong>Red</strong><span>I would go to this baby now.</span></button>
+    <section class="graph-card"><div class="graph-head"><div><h3>Breathing rate over the last 8 minutes</h3><p class="muted graph-note">Solid line: rolling estimate. Dashed line: usual rate. Shading: no breaths observed.</p></div><div class="clock-block"><span id="clock" aria-live="polite">Preparing observation</span><strong><span id="current-rr">—</span><small> /min</small></strong></div></div><canvas id="trace" aria-label="Graph of simulated breathing rate"></canvas><div class="legend-line"><span><i class="line-key"></i> Estimated breathing rate</span><span><i class="baseline-key"></i> Usual rate</span><span><i class="seesaw-key"></i> Chest and belly out of sync</span></div></section>
+    <section class="rating-section"><h2>What would you do?</h2><p class="muted">Choose the response that best matches your clinical judgement. You may change it during the observation.</p>
+      <div class="rating-buttons" role="group" aria-label="Clinical concern rating">
+        <button class="rating-btn green" data-rating="green" disabled><span class="rating-title">Green</span><span>No concern. Routine checks continue.</span></button>
+        <button class="rating-btn yellow" data-rating="yellow" disabled><span class="rating-title">Yellow</span><span>Concerning. I would want someone to review the baby soon.</span></button>
+        <button class="rating-btn red" data-rating="red" disabled><span class="rating-title">Red</span><span>I would go to this baby now.</span></button>
       </div><p id="current-rating" class="muted" aria-live="polite">Not yet rated.</p>
     </section>
     <section class="panel" id="end-panel" hidden><h2>Observation complete</h2><p>Confirm your final rating and answer the questions below.</p>
@@ -95,7 +95,7 @@
     </section>
   </section>
 
-  <section class="panel" id="final-questions" hidden><div class="progress-wrap"><div class="progress-head"><strong id="final-progress">All 8 scenarios complete</strong><span>Final questions</span></div><div class="progress-track"><span style="width:100%"></span></div></div>
+  <section class="panel final-panel" id="final-questions" hidden><div class="progress-wrap"><div class="progress-head"><strong id="final-progress">All 8 scenarios complete</strong><span>Final questions</span></div><div class="progress-track"><span style="width:100%"></span></div></div>
     <h2>Final questions</h2>
     <p>These questions ask about the point at which you would become concerned. Use your own clinical judgement; the simulation values are experimental stimuli.</p>
     <label>At what breathing rate would an elevated rate start to concern you? (breaths/minute)<input id="elevated-threshold" type="number" min="1" max="200" inputmode="numeric"></label>
@@ -105,8 +105,8 @@
     <button class="primary" id="submit-survey">Submit completed survey</button>
   </section>
 
-  <section class="panel" id="thank-you" hidden><h2>Thank you</h2><p id="thank-you-message">Your technical preview is complete. No research response was sent to a database.</p><button class="secondary" id="new-preview">Start a new preview</button></section>
-  <footer><span>Anonymous research survey</span><span>Do not enter patient-identifying information.</span></footer>
+  <section class="panel" id="thank-you" class="panel thank-you" hidden><h2>Thank you</h2><p id="thank-you-message">Your technical preview is complete. No research response was sent to a database.</p><p id="submission-reference" class="tiny muted"></p><button class="secondary" id="new-preview">Start a new preview</button></section>
+  <footer class="site-footer"><span>Anonymous research survey</span><span>Do not enter patient-identifying information.</span></footer>
 </main>
 <script type="module" src="./js/app.js"></script>
 </body>
