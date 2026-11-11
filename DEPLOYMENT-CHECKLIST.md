@@ -12,7 +12,7 @@
 - [x] Apply the initial schema and row-level security policies.
 - [x] Deploy the `submit-survey` Edge Function.
 - [x] Create the administrator Auth user and add it to `public.study_admins`.
-- [x] Ensure the Edge Function is closed by default and rejects submissions without server-side release settings.
+- [x] Ensure the Edge Function stores completed runs as test records while research is closed, and only permits official research records when server-side release settings are approved.
 - [ ] Independently review database schema, RLS, endpoint validation and administrator access with the institution's data/security contact.
 - [ ] Confirm the institution's approval of the data region, hosting logs and any cross-border transfer arrangements.
 
