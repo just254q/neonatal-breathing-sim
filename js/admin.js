@@ -124,7 +124,11 @@ function destroyChart(chart) {
   if (chart) chart.destroy();
 }
 function renderCharts() {
-  if (typeof Chart === "undefined") return;
+  if (!submissions.length || typeof Chart === "undefined") {
+    destroyChart(ratingChart); ratingChart = null;
+    destroyChart(confidenceChart); confidenceChart = null;
+    return;
+  }
   const rows = currentFilters();
   const selectedScenario = $("filter-baby").value;
   const cotNumbers = selectedScenario === "all"
