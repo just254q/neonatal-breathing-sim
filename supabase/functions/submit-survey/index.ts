@@ -75,16 +75,15 @@ Deno.serve(async(req)=>{
     return new Response("ok",{status:200,headers:{...BASE_HEADERS,"Access-Control-Allow-Origin":origin&&ALLOWED_ORIGINS.has(origin)?origin:"https://just254q.github.io"}});
   }
   if(origin && !ALLOWED_ORIGINS.has(origin))return response({error:"Origin not allowed"},403);
+  if(!origin || !ALLOWED_ORIGINS.has(origin))return response({error:"Origin not allowed"},403,origin);
   if(req.method!=="POST")return response({error:"Method not allowed"},405,origin);
 
-  // Fail closed on the server. A browser-side setting is not an access-control boundary.
-  // The study owner must set these Edge Function secrets only after faculty approval:
-  // RESEARCH_COLLECTION_ENABLED=true and APPROVED_CONSENT_VERSION=<approved version>.
-  if(Deno.env.get("RESEARCH_COLLECTION_ENABLED")!=="true"){
-    return response({error:"Research response collection is not enabled for this study."},503,origin);
-  }
+  // The server, not the browser, determines whether a record is test or research.
+  // With research collection closed, accepted submissions are stored as test records only.
+  // Official research submissions require both server-side release settings.
+  const researchCollectionEnabled=Deno.env.get("RESEARCH_COLLECTION_ENABLED")==="true";
   const approvedConsentVersion=(Deno.env.get("APPROVED_CONSENT_VERSION")??"").trim();
-  if(!approvedConsentVersion){
+  if(researchCollectionEnabled && !approvedConsentVersion){
     return response({error:"The approved consent version is not configured on the submission service."},503,origin);
   }
 
@@ -97,7 +96,7 @@ Deno.serve(async(req)=>{
   try{input=JSON.parse(raw);}catch{return response({error:"Invalid JSON"},400,origin);}
   const problem=validateSubmission(input);
   if(problem)return response({error:problem},400,origin);
-  if(input.consent_version!==approvedConsentVersion){
+  if(researchCollectionEnabled && input.consent_version!==approvedConsentVersion){
     return response({error:"The submitted consent version does not match the currently approved study information."},409,origin);
   }
 
@@ -110,9 +109,9 @@ Deno.serve(async(req)=>{
   secretKey ||= Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || undefined;
   if(!url||!secretKey)return response({error:"Submission service is not configured"},503,origin);
 
-  // The frontend cannot choose whether a record is a test. Only the project owner's
-  // server-side environment setting can mark submissions as test records.
-  const isTest=Deno.env.get("SURVEY_ENVIRONMENT")==="test";
+  // Never trust input.is_test. While research collection is closed, the server stores
+  // submissions exclusively as test records. When research is opened, records are research.
+  const isTest=!researchCollectionEnabled;
   const admin=createClient(url,secretKey,{auth:{persistSession:false,autoRefreshToken:false}});
   const row={
     participant_id:input.participant_id,
@@ -130,9 +129,9 @@ Deno.serve(async(req)=>{
   if(error?.code==="23505"){
     // Idempotent retry after a lost HTTP response: return the previously stored submission ID.
     const {data:existing,error:lookupError}=await admin.from("submissions").select("id").eq("participant_id",input.participant_id).maybeSingle();
-    if(!lookupError&&existing?.id)return response({submission_id:existing.id,saved:true,already_submitted:true},200,origin);
+    if(!lookupError&&existing?.id)return response({submission_id:existing.id,saved:true,already_submitted:true,record_type:isTest?"test":"research"},200,origin);
   }
-  if(inserted?.id&&!error)return response({submission_id:inserted.id,saved:true},200,origin);
+  if(inserted?.id&&!error)return response({submission_id:inserted.id,saved:true,record_type:isTest?"test":"research"},200,origin);
   console.error("Submission insert failed",error?.code||"unknown",error?.message||"");
   return response({error:"The server could not save this completed survey"},500,origin);
 });
