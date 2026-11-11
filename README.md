@@ -82,7 +82,7 @@ Open `http://localhost:8080/` to use database-backed test mode when the public S
 - Obtain neonatal-clinical review of all scenarios and simulated patterns before research use.
 - Confirm the institution's approval of the Mumbai data location, hosting/provider log handling, access roles, retention and withdrawal procedures.
 - Do not collect patient-identifying information. Review all optional free-text fields and the participant information sheet.
-- Test data persistence and export using a separate test environment before production recruitment. Do not create synthetic records in the live research database.
+- Keep internal test rows (`is_test=true`) separate from official research summaries and exports. Review and clear test rows under the project owner's approved data-retention procedure before final analysis.
 
 ## Provenance
 
