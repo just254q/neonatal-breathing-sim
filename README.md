@@ -24,7 +24,7 @@ Do not distribute the preview as a recruitment link or use it to collect researc
 4. After all eight scenarios, the participant completes the final respiratory-rate threshold questionnaire.
 5. The site sends the complete eight-scenario response package as one submission to the `submit-survey` Edge Function. It does not send partial scenario responses as individual research submissions.
 6. The Edge Function validates the anonymous session identifier, consent, exact eight-scenario permutation and order, scenario metadata, rating values, event timing and comment lengths. It inserts the submission using the server-side Supabase secret key.
-7. The participant sees a database reference only after the server confirms the saved record. If submission fails, the completed draft remains in that browser for retry.
+7. The participant sees a database reference only after the server confirms the saved record. In database test mode, responses remain in the open page's memory for retry if submission fails; they are not persisted to browser local storage. In approved research mode, the local draft is retained for recovery.
 8. The administrator dashboard reads submissions only after Supabase authentication and a matching row in `public.study_admins`. Test records are excluded from research summaries.
 
 The server derives the `is_test` flag from its own environment. A browser cannot mark a record as a test record.
