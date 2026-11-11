@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#eef2f2">
-  <meta name="description" content="Anonymous neonatal breathing observation research survey">
-  <title>Newborn Breathing Observation Survey</title>
+  <meta name="theme-color" content="#f4f7f8">
+  <meta name="description" content="A structured neonatal breathing observation simulator for approved research and technical preview.">
+  <title>Neonatal Breathing Observation Study</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
@@ -14,102 +14,346 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0"></script>
 </head>
 <body>
-<main class="wrap">
-  <header class="site-head">
-    <div class="brand-mark" aria-hidden="true">N</div>
-    <div>
-      <p class="eyebrow">Research survey</p>
-      <h1>Newborn Breathing Observation</h1>
-    </div>
-  </header>
+  <div class="page-frame">
+    <header class="site-header">
+      <a class="brand" href="./" aria-label="Neonatal Breathing Observation home">
+        <span class="brand-symbol" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span class="brand-copy">
+          <span class="brand-name">Neonatal Breathing</span>
+          <span class="brand-subtitle">Observation study</span>
+        </span>
+      </a>
+      <div class="header-status">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span id="environment-badge">Study information</span>
+      </div>
+    </header>
 
-  <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+    <main class="main-content">
+      <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
 
-  <section class="panel intro-panel" id="consent-panel">
-    <p class="eyebrow">Study information and consent</p>
-    <h2>About this study</h2>
-    <p id="study-title" class="study-title">Study title: <span id="study-title-value">[Insert faculty-approved study title]</span></p>
-    <p>This research asks neonatal-care professionals to observe a computer-generated newborn breathing simulation and record the assessment they would make in the situation presented. You will complete eight short observations. Each observation includes a simulated eight-minute breathing-rate history followed by 30 seconds of live animation.</p>
-    <h3>What participation involves</h3>
-    <ul>
-      <li>Participation is voluntary and should take approximately 10–15 minutes.</li>
-      <li>You may change your green, yellow, or red assessment during the live observation.</li>
-      <li>You will be asked about confidence, realism, and any additional information you would need.</li>
-      <li>You may close the page before submitting. Completed responses on this device may be retained as an unfinished local draft until you resume or clear browser data.</li>
-    </ul>
-    <h3>Privacy and risks</h3>
-    <p id="privacy-copy">Technical preview: responses remain in this browser only and are not submitted to the research database. Do not use this preview for recruitment. Before research collection is enabled, the study team must provide the faculty-approved statement describing database storage, data location, provider logs, retention, and withdrawal arrangements.</p>
-    <p>Do not enter names, email addresses, staff numbers, patient details, or other identifying information in free-text comments. Website and hosting providers may process technical connection information in operational logs. The study team must explain how these logs are handled in the approved privacy statement.</p>
-    <p>Approved data retention and storage details: <strong id="data-retention">[Insert approved retention period and storage jurisdiction]</strong>.</p>
-    <p>The simulations are experimental stimuli and are not clinical guidance, diagnostic tools, or validated respiratory thresholds. They should not be used to make decisions about real patients.</p>
-    <h3>Voluntary participation and contacts</h3>
-    <p>You may decline to participate without penalty. For questions about the study, contact: <strong id="study-contact">[Insert principal investigator name and institutional email]</strong>. For questions about participant rights, contact: <strong id="ethics-contact">[Insert faculty ethics committee contact]</strong> (<span id="approval-reference">[Insert approval/reference number]</span>).</p>
-    <p class="approval-note" id="approval-note">This information sheet and consent wording are a draft for faculty/ethics review. Replace all bracketed contact, privacy, and approval details, confirm data retention and withdrawal arrangements, and obtain required approvals before recruiting participants. This version is connected to the database project, but collection remains disabled and preview responses stay in this browser.</p>
+      <section class="panel consent-panel" id="consent-panel">
+        <div class="intro-hero">
+          <div class="intro-copy">
+            <p class="eyebrow">Participant information</p>
+            <h1>How do clinicians interpret newborn breathing patterns?</h1>
+            <p class="hero-summary">Explore a series of simulated breathing observations and record the response you would make in each situation.</p>
+            <div class="hero-meta" aria-label="Study overview">
+              <span><strong>8</strong> observations</span>
+              <span><strong>10–15</strong> minutes</span>
+              <span><strong>Voluntary</strong> participation</span>
+            </div>
+          </div>
+          <div class="hero-art" aria-hidden="true">
+            <div class="art-orbit orbit-one"></div>
+            <div class="art-orbit orbit-two"></div>
+            <div class="art-breath breath-one"></div>
+            <div class="art-breath breath-two"></div>
+            <div class="art-core"><span class="art-pulse"></span></div>
+            <div class="art-caption">Observe<br>Assess<br>Reflect</div>
+          </div>
+        </div>
 
-    <div class="form-grid">
-      <label>Clinical role (optional)
-        <select id="clinical-role">
-          <option value="">Prefer not to say / not provided</option>
-          <option value="nurse">Nurse</option>
-          <option value="midwife">Midwife</option>
-          <option value="doctor">Doctor</option>
-          <option value="other">Other neonatal-care professional</option>
-        </select>
-      </label>
-      <label>Experience in neonatal care (optional)
-        <select id="neonatal-experience">
-          <option value="">Prefer not to say / not provided</option>
-          <option value="less-than-1">Less than 1 year</option>
-          <option value="1-to-5">1–5 years</option>
-          <option value="6-to-10">6–10 years</option>
-          <option value="more-than-10">More than 10 years</option>
-        </select>
-      </label>
-    </div>
-    <label class="consent-check"><input type="checkbox" id="consent-check"> I have read the information above and agree to take part in this survey. I understand participation is voluntary.</label>
-    <button class="primary" id="begin-survey" disabled>Agree and begin survey</button>
-  </section>
+        <div class="study-title-row">
+          <div>
+            <p class="eyebrow">Study title</p>
+            <p id="study-title" class="study-title"><span id="study-title-value">[Insert faculty-approved study title]</span></p>
+          </div>
+          <span class="study-tag">Research survey</span>
+        </div>
 
-  <section class="panel intro-panel" id="scenario-intro" hidden>
-    <div class="progress-wrap"><div class="progress-head"><strong id="progress-label">Scenario 1 of 8</strong><span id="remaining-label">8 scenarios remaining</span></div><div id="progress-track" class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="8" aria-valuenow="0"><span id="progress-fill"></span></div></div>
-    <h2 id="scenario-heading">Next observation</h2>
-    <p>You will see the last eight minutes of breathing, followed by 30 seconds of live animation. Select the assessment that best reflects what you would do.</p>
-    <button class="primary" id="start-scenario">Start observation</button>
-  </section>
+        <div class="section-divider"></div>
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Before you begin</p>
+            <h2>What taking part involves</h2>
+          </div>
+          <p class="section-lead">Please read the information below before deciding whether to continue.</p>
+        </div>
 
-  <section id="sim" class="sim-shell" hidden>
-    <div class="scenario-top"><div><p class="eyebrow">Live observation</p><h2 id="cot-heading">Cot 1</h2></div><div class="baseline-display">Usual breathing rate <strong><span id="baseline-number">40</span>/min</strong></div></div>
-    <div class="stage"><canvas id="baby" aria-label="Animated newborn lying in a cot and breathing"></canvas></div>
-    <section class="graph-card"><div class="graph-head"><div><h3>Breathing rate over the last 8 minutes</h3><p class="muted graph-note">Solid line: rolling estimate. Dashed line: usual rate. Shading: no breaths observed.</p></div><div class="clock-block"><span id="clock" aria-live="polite">Preparing observation</span><strong><span id="current-rr">—</span><small> /min</small></strong></div></div><canvas id="trace" aria-label="Graph of simulated breathing rate"></canvas><div class="legend-line"><span><i class="line-key"></i> Estimated breathing rate</span><span><i class="baseline-key"></i> Usual rate</span><span><i class="seesaw-key"></i> Chest and belly out of sync</span></div></section>
-    <section class="rating-section"><h2>What would you do?</h2><p class="muted">Choose the response that best matches your clinical judgement. You may change it during the observation.</p>
-      <div class="rating-buttons" role="group" aria-label="Clinical concern rating">
-        <button class="rating-btn green" data-rating="green" disabled><span class="rating-title">Green</span><span>No concern. Routine checks continue.</span></button>
-        <button class="rating-btn yellow" data-rating="yellow" disabled><span class="rating-title">Yellow</span><span>Concerning. I would want someone to review the baby soon.</span></button>
-        <button class="rating-btn red" data-rating="red" disabled><span class="rating-title">Red</span><span>I would go to this baby now.</span></button>
-      </div><p id="current-rating" class="muted" aria-live="polite">Not yet rated.</p>
-    </section>
-    <section class="panel" id="end-panel" hidden><h2>Observation complete</h2><p>Confirm your final rating and answer the questions below.</p>
-      <label>How confident are you in your final rating? <select id="confidence"><option value="">Select confidence</option><option value="1">1 — Not at all confident</option><option value="2">2 — Slightly confident</option><option value="3">3 — Moderately confident</option><option value="4">4 — Very confident</option><option value="5">5 — Completely confident</option></select></label>
-      <label class="check-row"><input type="checkbox" id="unrealistic"> This did not look like a realistic baby.</label>
-      <label>What additional information would you need? (optional)<textarea id="additional-info"></textarea></label>
-      <label>Comments (optional)<textarea id="comments"></textarea></label>
-      <button class="primary" id="save-continue" disabled>Save response and continue</button>
-    </section>
-  </section>
+        <div class="steps-grid">
+          <article class="step-card">
+            <span class="step-number">01</span>
+            <h3>Review</h3>
+            <p>Read the study information and confirm whether you agree to participate.</p>
+          </article>
+          <article class="step-card">
+            <span class="step-number">02</span>
+            <h3>Observe</h3>
+            <p>Review an eight-minute breathing-rate history, then watch 30 seconds of live animation.</p>
+          </article>
+          <article class="step-card">
+            <span class="step-number">03</span>
+            <h3>Assess</h3>
+            <p>Select a green, yellow or red response. You can change your assessment while the live observation is running.</p>
+          </article>
+          <article class="step-card">
+            <span class="step-number">04</span>
+            <h3>Reflect</h3>
+            <p>Rate your confidence, comment on realism and complete a short final questionnaire.</p>
+          </article>
+        </div>
 
-  <section class="panel final-panel" id="final-questions" hidden><div class="progress-wrap"><div class="progress-head"><strong id="final-progress">All 8 scenarios complete</strong><span>Final questions</span></div><div class="progress-track"><span style="width:100%"></span></div></div>
-    <h2>Final questions</h2>
-    <p>These questions ask about the point at which you would become concerned. Use your own clinical judgement; the simulation values are experimental stimuli.</p>
-    <label>At what breathing rate would an elevated rate start to concern you? (breaths/minute)<input id="elevated-threshold" type="number" min="1" max="200" inputmode="numeric"></label>
-    <label>At what breathing rate would a reduced rate start to concern you? (breaths/minute)<input id="reduced-threshold" type="number" min="1" max="200" inputmode="numeric"></label>
-    <label>If the rate returned to usual, how long would you remain concerned? <select id="concern-duration"><option value="">Select one (optional)</option><option value="under-5">Less than 5 minutes</option><option value="5-to-15">5–15 minutes</option><option value="16-to-30">16–30 minutes</option><option value="over-30">More than 30 minutes</option><option value="depends">It depends on other signs</option></select></label>
-    <label>Anything else you would like the study team to know? (optional)<textarea id="final-comments"></textarea></label>
-    <button class="primary" id="submit-survey">Submit completed survey</button>
-  </section>
+        <div class="information-grid">
+          <article class="info-card">
+            <div class="info-icon" aria-hidden="true">i</div>
+            <div>
+              <h3>Voluntary participation</h3>
+              <p>You may choose not to participate. You can close the page before submitting. Please review the approved withdrawal arrangements below.</p>
+            </div>
+          </article>
+          <article class="info-card">
+            <div class="info-icon privacy-icon" aria-hidden="true">⌑</div>
+            <div>
+              <h3>Privacy and data use</h3>
+              <p id="privacy-copy">Technical preview: responses remain in this browser only and are not submitted to the research database. Do not use this preview for recruitment. Before research collection is enabled, the study team must provide the faculty-approved statement describing database storage, data location, provider logs, retention, and withdrawal arrangements.</p>
+              <p class="retention-line">Approved storage and retention details: <strong id="data-retention">[Insert approved retention period and storage jurisdiction]</strong>.</p>
+            </div>
+          </article>
+          <article class="info-card full-span">
+            <div class="info-icon clinical-icon" aria-hidden="true">+</div>
+            <div>
+              <h3>Important clinical note</h3>
+              <p>The scenarios are experimental stimuli. They are not clinical guidance, validated respiratory thresholds or diagnostic tools, and must not be used to make decisions about real patients.</p>
+            </div>
+          </article>
+        </div>
 
-  <section class="panel" id="thank-you" class="panel thank-you" hidden><h2>Thank you</h2><p id="thank-you-message">Your technical preview is complete. No research response was sent to a database.</p><p id="submission-reference" class="tiny muted"></p><button class="secondary" id="new-preview">Start a new preview</button></section>
-  <footer class="site-footer"><span>Anonymous research survey</span><span>Do not enter patient-identifying information.</span></footer>
-</main>
-<script type="module" src="./js/app.js"></script>
+        <div class="contact-strip">
+          <div>
+            <span class="contact-label">Study contact</span>
+            <strong id="study-contact">[Insert principal investigator name and institutional email]</strong>
+          </div>
+          <div>
+            <span class="contact-label">Ethics / participant rights</span>
+            <strong id="ethics-contact">[Insert faculty ethics committee contact]</strong>
+            <span class="contact-reference">Reference: <span id="approval-reference">[Insert approval/reference number]</span></span>
+          </div>
+        </div>
+
+        <p class="approval-note" id="approval-note">This information sheet and consent wording are a draft for faculty/ethics review. Replace all bracketed contact, privacy, and approval details, confirm data retention and withdrawal arrangements, and obtain required approvals before recruiting participants. This version is connected to the database project, but collection remains disabled and preview responses stay in this browser.</p>
+
+        <div class="consent-form">
+          <div class="section-heading compact-heading">
+            <div>
+              <p class="eyebrow">Your details</p>
+              <h2>About your experience</h2>
+            </div>
+            <span class="optional-note">Optional questions</span>
+          </div>
+          <div class="form-grid">
+            <label for="clinical-role">Clinical role
+              <select id="clinical-role">
+                <option value="">Prefer not to say / not provided</option>
+                <option value="nurse">Nurse</option>
+                <option value="midwife">Midwife</option>
+                <option value="doctor">Doctor</option>
+                <option value="other">Other neonatal-care professional</option>
+              </select>
+            </label>
+            <label for="neonatal-experience">Experience in neonatal care
+              <select id="neonatal-experience">
+                <option value="">Prefer not to say / not provided</option>
+                <option value="less-than-1">Less than 1 year</option>
+                <option value="1-to-5">1–5 years</option>
+                <option value="6-to-10">6–10 years</option>
+                <option value="more-than-10">More than 10 years</option>
+              </select>
+            </label>
+          </div>
+          <label class="consent-check" for="consent-check">
+            <input type="checkbox" id="consent-check">
+            <span id="consent-label">I have read the information above and agree to take part in this survey. I understand participation is voluntary.</span>
+          </label>
+          <div class="form-actions">
+            <div class="form-hint">Your responses are grouped using a random session code. Do not enter identifying information in free-text fields.</div>
+            <button class="primary" id="begin-survey" disabled>Agree and begin survey</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel scenario-intro" id="scenario-intro" hidden>
+        <div class="progress-overview">
+          <div>
+            <p class="eyebrow">Your progress</p>
+            <h2 id="scenario-heading">Your next observation is ready</h2>
+          </div>
+          <div class="progress-count"><strong id="progress-label">Scenario 1 of 8</strong><span id="remaining-label">8 scenarios remaining</span></div>
+        </div>
+        <div class="progress-track" id="progress-track" role="progressbar" aria-label="Survey completion" aria-valuemin="0" aria-valuemax="8" aria-valuenow="0"><span id="progress-fill"></span></div>
+        <div class="scenario-intro-grid">
+          <div class="intro-number">0<span id="intro-step-number">1</span></div>
+          <div>
+            <h3>Take a moment to observe</h3>
+            <p>You will first see the breathing-rate history for the previous eight minutes. The live observation then runs for 30 seconds. Choose the response that best reflects your judgement.</p>
+          </div>
+        </div>
+        <div class="intro-footer">
+          <span class="muted">There are no right or wrong answers shown during the task.</span>
+          <button class="primary" id="start-scenario">Start observation <span aria-hidden="true">→</span></button>
+        </div>
+      </section>
+
+      <section id="sim" class="sim-shell" hidden>
+        <div class="workspace-header">
+          <div>
+            <p class="eyebrow">Live observation</p>
+            <h2 id="cot-heading">Cot 1</h2>
+          </div>
+          <div class="baseline-card">
+            <span>Usual breathing rate</span>
+            <strong><span id="baseline-number">40</span><small>breaths/min</small></strong>
+          </div>
+        </div>
+
+        <div class="stage-card">
+          <div class="stage-heading">
+            <div>
+              <p class="eyebrow">Visual observation</p>
+              <h3>Newborn breathing simulation</h3>
+            </div>
+            <span class="live-indicator"><span></span> Live animation</span>
+          </div>
+          <div class="stage"><canvas id="baby" aria-label="Animated newborn lying in a cot and breathing"></canvas></div>
+        </div>
+
+        <section class="graph-card">
+          <div class="graph-head">
+            <div>
+              <p class="eyebrow">Respiratory trend</p>
+              <h3>Breathing rate over the last 8 minutes</h3>
+              <p class="muted graph-note">Solid line: rolling estimate · Dashed line: usual rate · Shading: no breaths observed</p>
+            </div>
+            <div class="clock-block">
+              <span id="clock" aria-live="polite">Preparing observation</span>
+              <strong><span id="current-rr">—</span><small>breaths/min</small></strong>
+            </div>
+          </div>
+          <div class="chart-wrap"><canvas id="trace" aria-label="Graph of simulated breathing rate"></canvas></div>
+          <div class="legend-line">
+            <span><i class="line-key"></i> Estimated breathing rate</span>
+            <span><i class="baseline-key"></i> Usual rate</span>
+            <span><i class="seesaw-key"></i> Chest and abdomen out of sync</span>
+          </div>
+        </section>
+
+        <section class="rating-section">
+          <div class="rating-heading">
+            <div>
+              <p class="eyebrow">Your clinical assessment</p>
+              <h2>What would you do?</h2>
+            </div>
+            <p class="muted">Select one response. You can update it at any time during the 30-second live observation.</p>
+          </div>
+          <div class="rating-buttons" role="group" aria-label="Clinical concern rating">
+            <button class="rating-btn green" data-rating="green" aria-pressed="false" disabled>
+              <span class="rating-marker" aria-hidden="true">G</span>
+              <span class="rating-copy"><strong class="rating-title">Green</strong><span>No concern. Routine checks continue.</span></span>
+            </button>
+            <button class="rating-btn yellow" data-rating="yellow" aria-pressed="false" disabled>
+              <span class="rating-marker" aria-hidden="true">Y</span>
+              <span class="rating-copy"><strong class="rating-title">Yellow</strong><span>Concerning. I would want someone to review the baby soon.</span></span>
+            </button>
+            <button class="rating-btn red" data-rating="red" aria-pressed="false" disabled>
+              <span class="rating-marker" aria-hidden="true">R</span>
+              <span class="rating-copy"><strong class="rating-title">Red</strong><span>I would go to this baby now.</span></span>
+            </button>
+          </div>
+          <p id="current-rating" class="rating-feedback" aria-live="polite">Choose a rating when the live observation begins.</p>
+        </section>
+
+        <section class="panel end-panel" id="end-panel" hidden>
+          <div class="completion-heading">
+            <span class="completion-check" aria-hidden="true">✓</span>
+            <div><p class="eyebrow">Observation complete</p><h2>Record your final assessment</h2></div>
+          </div>
+          <p class="muted">Your final selected rating is recorded below. Please complete the brief follow-up questions to save this observation.</p>
+          <div class="response-summary" id="response-summary">
+            <span>Selected assessment</span><strong id="response-rating-summary">Not yet rated</strong>
+          </div>
+          <div class="end-form-grid">
+            <label for="confidence">How confident are you in your final rating?
+              <select id="confidence">
+                <option value="">Select confidence</option>
+                <option value="1">1 — Not at all confident</option>
+                <option value="2">2 — Slightly confident</option>
+                <option value="3">3 — Moderately confident</option>
+                <option value="4">4 — Very confident</option>
+                <option value="5">5 — Completely confident</option>
+              </select>
+            </label>
+            <label class="check-row" for="unrealistic">
+              <input type="checkbox" id="unrealistic">
+              <span>This did not look like a realistic baby.</span>
+            </label>
+          </div>
+          <label class="field-label" for="additional-info">What additional information would you need? <span class="optional-note">Optional</span>
+            <textarea id="additional-info" maxlength="2000" placeholder="Share any additional clinical context you would want to see…"></textarea>
+          </label>
+          <label class="field-label" for="comments">Comments <span class="optional-note">Optional</span>
+            <textarea id="comments" maxlength="2000" placeholder="Add any comments about this observation…"></textarea>
+          </label>
+          <div class="end-actions">
+            <span class="form-hint">Your response is saved to this session before you move on.</span>
+            <button class="primary" id="save-continue" disabled>Save response and continue <span aria-hidden="true">→</span></button>
+          </div>
+        </section>
+      </section>
+
+      <section class="panel final-panel" id="final-questions" hidden>
+        <div class="progress-overview">
+          <div><p class="eyebrow">Final step</p><h2>All eight observations complete</h2></div>
+          <div class="progress-count"><strong id="final-progress">8 of 8 complete</strong><span>Final questionnaire</span></div>
+        </div>
+        <div class="progress-track final-track"><span style="width:100%"></span></div>
+        <h3>Reflect on your assessment</h3>
+        <p class="muted">The following questions ask when you would become concerned. Use your own clinical judgement; the simulation values are experimental stimuli.</p>
+        <div class="final-form-grid">
+          <label for="elevated-threshold">At what breathing rate would an elevated rate start to concern you?
+            <span class="input-suffix"><input id="elevated-threshold" type="number" min="1" max="200" step="1" inputmode="numeric" placeholder="e.g. 60"><span>breaths/min</span></span>
+          </label>
+          <label for="reduced-threshold">At what breathing rate would a reduced rate start to concern you?
+            <span class="input-suffix"><input id="reduced-threshold" type="number" min="1" max="200" step="1" inputmode="numeric" placeholder="e.g. 25"><span>breaths/min</span></span>
+          </label>
+          <label for="concern-duration" class="full-span">If the rate returned to usual, how long would you remain concerned?
+            <select id="concern-duration">
+              <option value="">Select one (optional)</option>
+              <option value="under-5">Less than 5 minutes</option>
+              <option value="5-to-15">5–15 minutes</option>
+              <option value="16-to-30">16–30 minutes</option>
+              <option value="over-30">More than 30 minutes</option>
+              <option value="depends">It depends on other signs</option>
+            </select>
+          </label>
+          <label for="final-comments" class="full-span">Anything else you would like the study team to know? <span class="optional-note">Optional</span>
+            <textarea id="final-comments" maxlength="2000" placeholder="Any further thoughts about the simulator or assessment task…"></textarea>
+          </label>
+        </div>
+        <div class="submit-panel">
+          <div>
+            <strong>Ready to finish?</strong>
+            <p id="submission-status" class="muted">Your eight scenario responses and final answers will be sent together when research collection is enabled.</p>
+          </div>
+          <button class="primary" id="submit-survey">Submit completed survey</button>
+        </div>
+      </section>
+
+      <section class="panel thank-you" id="thank-you" hidden>
+        <div class="thank-you-mark" aria-hidden="true">✓</div>
+        <p class="eyebrow">Submission status</p>
+        <h2 id="thank-you-heading">Thank you for taking part</h2>
+        <p id="thank-you-message">Your technical preview is complete. No research response was sent to a database.</p>
+        <div id="submission-reference" class="submission-reference" hidden></div>
+        <button class="secondary" id="new-preview">Start a new preview</button>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span>Neonatal Breathing Observation Study</span>
+      <span>Do not enter patient-identifying information.</span>
+    </footer>
+  </div>
+
+  <script type="module" src="./js/app.js"></script>
 </body>
 </html>
