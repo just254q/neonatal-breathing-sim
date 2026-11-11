@@ -4,6 +4,7 @@ window.APP_CONFIG = {
   supabaseUrl: "https://wpcgwnrtkcyldzxnorto.supabase.co",
   supabasePublishableKey: "sb_publishable_zX6If-imXeulH58zlz-J6Q_jYHEwYlY",
   researchCollectionEnabled: false,
+  databaseTestMode: true,
   studyTitle: "[Insert faculty-approved study title]",
   studyContact: "[Insert principal investigator name and institutional email]",
   ethicsContact: "[Insert faculty ethics committee contact]",
