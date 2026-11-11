@@ -393,8 +393,8 @@ function exportCsvFor(sourceRows, filename, recordLabel) {
   const csv = [
     columns.map(quote).join(","),
     ...rows.map(row => columns.map(column => quote(row[column])).join(","))
-  ].join("\\r\\n");
-  downloadBlob("\\ufeff" + csv, filename, "text/csv;charset=utf-8");
+  ].join("\r\n");
+  downloadBlob("\ufeff" + csv, filename, "text/csv;charset=utf-8");
   notice(`Your ${recordLabel} CSV export has been prepared.`, "success");
 }
 function exportExcel() {
