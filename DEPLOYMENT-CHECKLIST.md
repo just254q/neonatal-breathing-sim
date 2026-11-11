@@ -30,7 +30,8 @@
 - [ ] Test the complete participant journey on desktop and mobile in a separate test project/environment.
 - [ ] Verify one complete eight-scenario submission creates one database row with all eight ordered responses and final questionnaire answers.
 - [ ] Verify retry after a lost response does not create duplicate submissions.
-- [ ] Verify browser preview data never reaches the database.
+- [x] Verify the optional `?test=1` browser-only sandbox does not send records to the database.
+- [ ] Verify main-site database test runs are stored as `is_test=true` and are visible only in the separate test-results area.
 - [ ] Verify anonymous visitors cannot read submissions and authenticated non-admin users cannot read submissions.
 - [ ] Verify the authorized administrator can log in, filter records and export CSV/Excel.
 - [ ] Verify submission errors preserve the local draft and do not show a false success message.
