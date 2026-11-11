@@ -48,7 +48,7 @@ Deno.serve(async(req)=>{
  const url=Deno.env.get("SUPABASE_URL"),serviceRole=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
  if(!url||!serviceRole)return json({error:"Submission service is not configured"},503);
  // Keep privileged credentials in server-side Edge Function secrets only.
- input.is_test=Deno.env.get("SURVEY_ENVIRONMENT")==="test";
+ input.is_test = Deno.env.get("SURVEY_ENVIRONMENT") === "test";
  const admin=createClient(url,serviceRole,{auth:{persistSession:false,autoRefreshToken:false}});
  const{data,error}=await admin.rpc("submit_complete_survey",{p_submission:input});
  if(error){console.error("submit_complete_survey failed",error.message);return json({error:"The server could not save this completed survey"},500);}
