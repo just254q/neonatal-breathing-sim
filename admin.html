@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Private Research Dashboard</title>
+  <link rel="stylesheet" href="./css/styles.css">
+  <link rel="stylesheet" href="./css/admin.css">
+  <script src="./config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+<main class="admin-wrap">
+  <header class="admin-header">
+    <div><p class="eyebrow">Restricted access</p><h1>Neonatal breathing research dashboard</h1><p class="muted">Research response records contain no direct participant identifiers. Test records are excluded from research summaries.</p></div>
+    <button id="logout" class="secondary" hidden>Sign out</button>
+  </header>
+  <div id="admin-notice" class="notice" role="status" hidden></div>
+  <section id="login-panel" class="panel login-panel">
+    <h2>Administrator sign in</h2><p class="muted">Use the administrator account created in the study's Supabase project.</p>
+    <form id="login-form">
+      <label>Email <input id="admin-email" type="email" autocomplete="username" required></label>
+      <label>Password <input id="admin-password" type="password" autocomplete="current-password" required></label>
+      <button class="primary" type="submit">Sign in</button>
+    </form>
+  </section>
+  <section id="dashboard" hidden>
+    <div class="dashboard-toolbar"><div><strong id="last-updated">Not yet loaded</strong><span class="muted tiny"> · Research submissions only</span></div>
+      <div class="toolbar-actions"><button id="refresh" class="secondary">Refresh data</button><button id="export-csv" class="secondary">Download CSV</button><button id="export-xlsx" class="primary">Download Excel</button></div>
+    </div>
+    <div class="stats-grid">
+      <article class="stat-card"><span>Total completed nurse submissions</span><strong id="total-submissions">0</strong></article>
+      <article class="stat-card"><span>Scenario responses</span><strong id="total-responses">0</strong></article>
+      <article class="stat-card"><span>Submissions with a rating change</span><strong id="changed-submissions">0</strong></article>
+      <article class="stat-card"><span>Average confidence (1–5)</span><strong id="average-confidence">—</strong></article>
+    </div>
+    <section class="panel dashboard-section">
+      <div class="section-heading"><div><h2>Scenario comparison</h2><p class="muted tiny">Final confirmed ratings by cot. Percentages use completed responses for each scenario.</p></div>
+        <div class="filters"><label>Baby / cot <select id="filter-baby"><option value="all">All babies</option></select></label>
+          <label>Final rating <select id="filter-rating"><option value="all">All ratings</option><option value="green">Green</option><option value="yellow">Yellow</option><option value="red">Red</option></select></label></div>
+      </div>
+      <div class="chart-grid"><div class="chart-box"><h3>Final ratings by scenario</h3><canvas id="rating-chart"></canvas></div><div class="chart-box"><h3>Average confidence by scenario</h3><canvas id="confidence-chart"></canvas></div></div>
+      <div class="table-scroll"><table id="scenario-table"><thead><tr><th>Scenario ID</th><th>Cot</th><th>Initial green n (%)</th><th>Initial yellow n (%)</th><th>Initial red n (%)</th><th>Final green n (%)</th><th>Final yellow n (%)</th><th>Final red n (%)</th><th>Avg. confidence</th><th>Changed initial rating</th><th>Realism concern</th></tr></thead><tbody></tbody></table></div>
+    </section>
+    <section class="panel dashboard-section"><h2>Individual anonymous responses</h2><p class="muted tiny">Comments and scenario records are visible only to an authenticated study administrator. Do not use free-text responses to attempt to identify participants.</p>
+      <div class="table-scroll"><table id="response-table"><thead><tr><th>Submission date/time</th><th>Anonymous session ID</th><th>Scenario</th><th>Initial rating</th><th>Final rating</th><th>Changes</th><th>Rating-event timestamps</th><th>Confidence</th><th>Realistic?</th><th>Additional information requested</th><th>Comments</th></tr></thead><tbody></tbody></table></div>
+    </section>
+    <section class="panel dashboard-section"><h2>Final questionnaire responses</h2>
+      <div class="table-scroll"><table id="final-table"><thead><tr><th>Submission date/time</th><th>Session ID</th><th>Elevated RR concern</th><th>Reduced RR concern</th><th>Concern duration after baseline</th><th>Other comments</th></tr></thead><tbody></tbody></table></div>
+    </section>
+  </section>
+  <footer class="site-footer"><span>Private administrator area</span><span>Public participants do not have access to this page or its data.</span></footer>
+</main>
+<script type="module" src="./js/admin.js"></script>
+</body>
+</html>
