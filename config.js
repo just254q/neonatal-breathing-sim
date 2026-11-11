@@ -12,5 +12,5 @@ window.APP_CONFIG = {
   dataRetention: "[Insert approved retention period and storage jurisdiction]",
   privacyNotice: "[Insert faculty-approved privacy statement: database storage, location, provider logs, retention, and withdrawal arrangements]",
   consentVersion: "draft-1.0",
-  appVersion: "0.3.0"
+  appVersion: "0.4.0"
 };
