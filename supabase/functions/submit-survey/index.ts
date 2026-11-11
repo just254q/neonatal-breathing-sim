@@ -95,7 +95,11 @@ Deno.serve(async(req)=>{
   let input:any;
   try{input=JSON.parse(raw);}catch{return response({error:"Invalid JSON"},400,origin);}
   const problem=validateSubmission(input);
-  if(problem)return response({error:problem},400,origin);
+  if(problem){
+    // Log the specific validation reason for the study owner without logging participant answers.
+    console.error("submit-survey validation rejected: " + problem);
+    return response({error:problem,code:"invalid_submission"},400,origin);
+  }
   if(researchCollectionEnabled && input.consent_version!==approvedConsentVersion){
     return response({error:"The submitted consent version does not match the currently approved study information."},409,origin);
   }
