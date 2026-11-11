@@ -43,12 +43,7 @@ Never add a Supabase secret key, service-role key, database password or other pr
 
 ### Server-side release gate
 
-The Edge Function is intentionally closed by default. Before opening collection, the project owner must enter the following in Supabase Dashboard → Edge Functions → Secrets, using the exact approved consent version:
-
-- `RESEARCH_COLLECTION_ENABLED=true`
-- `APPROVED_CONSENT_VERSION=<exact approved consent version>`
-
-The matching public `config.js` must then be updated with the faculty-approved study title, contact details, ethics approval/reference, privacy notice, storage and retention statement, the same `consentVersion`, and `researchCollectionEnabled: true`. The frontend and backend settings must be reviewed together before recruitment begins. Do not switch these settings on with draft or placeholder consent wording.
+While `RESEARCH_COLLECTION_ENABLED` is not `true`, the Edge Function accepts completed submissions only as test records and forces `is_test=true` server-side. The browser cannot override this flag. Once the institution approves research collection, the project owner must set `RESEARCH_COLLECTION_ENABLED=true` and `APPROVED_CONSENT_VERSION=<exact approved consent version>` in Supabase Edge Function secrets. The matching public `config.js` must then be updated with the faculty-approved study title, contacts, ethics reference, privacy statement, retention wording, the same `consentVersion`, `researchCollectionEnabled: true`, and `databaseTestMode: false`. The frontend and backend settings must be reviewed together before recruitment begins. Do not switch these settings on with draft or placeholder consent wording.
 
 ## Administrator access
 
