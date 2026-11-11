@@ -30,8 +30,9 @@
 - `public.submissions` and `public.study_admins` exist with RLS enabled.
 - Edge Function `submit-survey` is deployed.
 - Administrator Auth user `jmogire93@gmail.com` exists and is on the allow-list.
-- Current code update adds a server-side fail-closed requirement: no request can be stored unless `RESEARCH_COLLECTION_ENABLED=true` and the supplied consent version equals `APPROVED_CONSENT_VERSION`.
-- Public `config.js` currently sets `researchCollectionEnabled: false` and contains draft placeholders.
+- While `RESEARCH_COLLECTION_ENABLED` is not `true`, the Edge Function accepts completed runs only as test records and sets `is_test=true` server-side.
+- Once research collection is enabled, the endpoint requires the exact `APPROVED_CONSENT_VERSION` from the approved study materials.
+- Public `config.js` currently sets `researchCollectionEnabled: false` and `databaseTestMode: true`; consent and ethics placeholders remain.
 
 ## Research release state
 
