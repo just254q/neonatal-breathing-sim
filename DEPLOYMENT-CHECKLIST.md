@@ -45,4 +45,4 @@
 - [ ] Confirm the participant page shows research collection active and the Edge Function accepts only the matching consent version.
 - [ ] Publish the recruitment link only after the above checks are signed off.
 
-**Current state:** the infrastructure is deployed, but participant research collection remains disabled. The public site is a technical preview and should not be used for recruitment.
+**Current state:** the infrastructure is deployed. The main participant link stores completed runs in Supabase as test records while official research collection remains disabled. The optional `?test=1` route is local-only. Neither mode should be used for participant recruitment.
