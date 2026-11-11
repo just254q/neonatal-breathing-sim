@@ -145,7 +145,14 @@ function paintRating() {
   document.querySelectorAll(".rating-btn").forEach(button => {
     button.setAttribute("aria-pressed", String(button.dataset.rating === rating));
   });
-  $("current-rating").textContent = rating ? `Selected: ${rating[0].toUpperCase()}${rating.slice(1)}. You can change this while the live observation is running.` : (mode === "live" ? "Choose the response that best reflects your assessment." : "Choose a rating when the live observation begins.");
+  const ratingContext = mode === "live"
+    ? "You can change this selection while the live observation is running."
+    : mode === "ended"
+      ? "This is your final assessment for this observation."
+      : "Choose a rating when the live observation begins.";
+  $("current-rating").textContent = rating
+    ? `Selected: ${rating[0].toUpperCase()}${rating.slice(1)}. ${ratingContext}`
+    : (mode === "live" ? "Choose the response that best reflects your assessment." : "Choose a rating when the live observation begins.");
   if ($("response-rating-summary")) $("response-rating-summary").textContent = rating ? rating[0].toUpperCase() + rating.slice(1) : "Not yet rated";
   $("save-continue").disabled = !(mode === "ended" && rating && $("confidence").value);
 }
