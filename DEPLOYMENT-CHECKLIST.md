@@ -34,7 +34,7 @@
 - [ ] Verify main-site database test runs are stored as `is_test=true` and are visible only in the separate test-results area.
 - [ ] Verify anonymous visitors cannot read submissions and authenticated non-admin users cannot read submissions.
 - [ ] Verify the authorized administrator can log in, filter records and export CSV/Excel.
-- [ ] Verify submission errors preserve the local draft and do not show a false success message.
+- [ ] Verify database test submission errors keep the completed responses in the open page for retry, and do not show a false success message.
 - [ ] Complete the institution's data protection/security review and obtain written release approval.
 
 ## Open research collection only after all approvals
