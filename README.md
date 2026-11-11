@@ -49,7 +49,7 @@ While `RESEARCH_COLLECTION_ENABLED` is not `true`, the Edge Function accepts com
 
 Open the private dashboard link and sign in with a Supabase Auth account added to `public.study_admins`. The current administrator account is `jmogire93@gmail.com`. Do not share administrator passwords. Add or remove administrators by changing the allow-list through an owner-controlled and audited process.
 
-The dashboard supports scenario comparisons, rating and confidence summaries, response-level review, final questionnaire review, CSV export and a two-sheet Excel export.
+The dashboard supports official research scenario comparisons, rating and confidence summaries, response-level review, final questionnaire review, CSV/Excel exports, and a separate test-record area with its own CSV and Excel exports.
 
 ## Local development and tests
 
