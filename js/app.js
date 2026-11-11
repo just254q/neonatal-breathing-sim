@@ -359,6 +359,10 @@ $("neonatal-experience").addEventListener("change", persistProfile);
   $(id).addEventListener("input", persistFinalQuestions);
   $(id).addEventListener("change", persistFinalQuestions);
 });
+["elevated-threshold", "reduced-threshold", "concern-duration", "final-comments"].forEach(id => {
+  $(id).addEventListener("input", persistFinalQuestions);
+  $(id).addEventListener("change", persistFinalQuestions);
+});
 $("begin-survey").addEventListener("click", () => {
   if (!$("consent-check").checked || (!recruitmentReady && !TEST_MODE)) return;
   initialiseDraft();
