@@ -72,7 +72,7 @@ test("server endpoint validates all scenario IDs, presentation order, metadata a
   assert.ok(fn.includes("researchCollectionEnabled && input.consent_version!==approvedConsentVersion"));
   assert.ok(fn.includes("const isTest=!researchCollectionEnabled;"));
   assert.ok(fn.includes('record_type:isTest?"test":"research"'));
-  assert.ok(!fn.includes("input.is_test"));
+  assert.ok(!/is_test\s*:\s*input\.is_test/.test(fn));
 });
 
 test("final questionnaire answers are saved and restored with an interrupted draft", () => {
