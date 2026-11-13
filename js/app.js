@@ -11,7 +11,8 @@ const LOCAL_TEST_MODE = forcedLocalPreview || !supabaseReady ||
   (config.researchCollectionEnabled !== true && !DATABASE_TEST_MODE);
 const TEST_MODE = DATABASE_TEST_MODE || LOCAL_TEST_MODE;
 const CONSENT_VERSION = config.consentVersion || "draft-1.0";
-const VERSION = config.appVersion || "0.4.0";
+const VERSION = config.appVersion || "0.5.0";
+const TIMING_PROTOCOL = "observe-15-assess-30";
 const STORAGE_KEY = "newborn-breathing-survey-draft-v1";
 const TEST_STORAGE_KEY = "newborn-breathing-survey-test-submissions-v1";
 const consentDetailsReady = [config.studyTitle, config.studyContact, config.ethicsContact, config.ethicsApproval, config.dataRetention, config.privacyNotice]
@@ -287,6 +288,7 @@ function createSubmissionPayload() {
     consent_given: true,
     consent_version: draft.consent_version,
     client_version: VERSION,
+    timing_protocol: TIMING_PROTOCOL,
     is_test: TEST_MODE
   };
 }

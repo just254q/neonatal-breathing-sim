@@ -2,6 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.119.0";
 
 const ALLOWED_ORIGINS = new Set([
   "https://just254q.github.io",
+  "https://delarat.github.io",
   "http://localhost:8080",
   "http://127.0.0.1:8080"
 ]);
@@ -65,7 +66,8 @@ function validateSubmission(input:any):string|null{
       // Ratings are disabled for the first 15 seconds. The 30-second assessment
       // window follows it, so rating events must fall in the 15–45 second interval.
       // Permit only a 100 ms floating-point boundary tolerance.
-      if(!Number.isFinite(liveSeconds)||liveSeconds < OBSERVATION_SECONDS-0.1||liveSeconds > LIVE_SECONDS+0.1)return"A rating event has an invalid live timestamp";
+      const minAllowedSeconds=input.timing_protocol==="observe-15-assess-30"?OBSERVATION_SECONDS-0.1:-0.1;
+      if(!Number.isFinite(liveSeconds)||liveSeconds < minAllowedSeconds||liveSeconds > LIVE_SECONDS+0.1)return"A rating event has an invalid live timestamp";
     }
     if(typeof r.simulated_pattern!=="string"||r.simulated_pattern.length>300)return"Invalid simulated pattern metadata";
     if(String(r.comments??"").length>2000||String(r.additional_information_needed??"").length>2000)return"A comment is too long";
@@ -112,7 +114,7 @@ Deno.serve(async(req)=>{
     for(const ev of [...(r.events??[]),...(r.rating_events??[])]){
       const liveSeconds=Number(ev?.live_seconds);
       if(Number.isFinite(liveSeconds)){
-        ev.live_seconds=Math.round(Math.min(30,Math.max(0,liveSeconds))*100)/100;
+        ev.live_seconds=Math.round(Math.min(LIVE_SECONDS,Math.max(0,liveSeconds))*100)/100;
       }
     }
   }

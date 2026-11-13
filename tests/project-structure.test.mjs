@@ -25,6 +25,8 @@ test("assessment is hidden during observation and can be submitted before the fu
   const app = read("../js/app.js");
   assert.match(html, /id="rating-section" hidden/);
   assert.ok(app.includes('mode = "observe"'));
+  assert.ok(app.includes('const TIMING_PROTOCOL = "observe-15-assess-30"'));
+  assert.ok(app.includes("timing_protocol: TIMING_PROTOCOL"));
   assert.ok(app.includes('if (mode !== "assessment" && !(mode === "ended" && !rating)) return;'));
   assert.ok(app.includes('if (mode === "observe" && engine.t >= OBSERVATION_SECONDS) beginAssessment();'));
   assert.ok(app.includes('if (mode === "assessment" && engine.t >= LIVE_SECONDS) finishAssessment();'));
@@ -81,7 +83,10 @@ test("server endpoint validates all scenario IDs, presentation order, metadata a
   assert.ok(fn.includes("rating_events"));
   assert.ok(fn.includes("const OBSERVATION_SECONDS = 15"));
   assert.ok(fn.includes("const LIVE_SECONDS = OBSERVATION_SECONDS + 30"));
-  assert.ok(fn.includes("liveSeconds < OBSERVATION_SECONDS-0.1"));
+  assert.ok(fn.includes('input.timing_protocol==="observe-15-assess-30"'));
+  assert.ok(fn.includes("liveSeconds < minAllowedSeconds"));
+  assert.ok(fn.includes('"https://delarat.github.io"'));
+  assert.ok(fn.includes("Math.min(LIVE_SECONDS,Math.max(0,liveSeconds))"));
   assert.ok(fn.includes("liveSeconds > LIVE_SECONDS+0.1"));
   assert.ok(fn.includes('Deno.env.get("RESEARCH_COLLECTION_ENABLED")==="true"'));
   assert.ok(fn.includes('Deno.env.get("APPROVED_CONSENT_VERSION")'));
