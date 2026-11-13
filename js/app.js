@@ -1,4 +1,4 @@
-import { SCENARIOS, SCENARIO_IDS, shuffleScenarioIds, getScenarioMetadata, LIVE_SECONDS } from "./scenarios.js";
+import { SCENARIOS, SCENARIO_IDS, shuffleScenarioIds, getScenarioMetadata, OBSERVATION_SECONDS, ASSESSMENT_SECONDS, LIVE_SECONDS } from "./scenarios.js";
 import { BreathingEngine, drawBaby, drawTrace, refreshCanvasColors } from "./simulator.js";
 
 const $ = id => document.getElementById(id);
@@ -28,7 +28,6 @@ let firstRating = null;
 let ratingEvents = [];
 let events = [];
 let liveAccumulator = 0;
-let timerId = null;
 let lastFrame = performance.now();
 let frameCount = 0;
 
@@ -148,16 +147,20 @@ function paintRating() {
   document.querySelectorAll(".rating-btn").forEach(button => {
     button.setAttribute("aria-pressed", String(button.dataset.rating === rating));
   });
-  const ratingContext = mode === "live"
-    ? "You can change this selection while the live observation is running."
+  const ratingContext = mode === "assessment"
+    ? "You can change this selection until you submit."
     : mode === "ended"
-      ? "This is your final assessment for this observation."
-      : "Choose a rating when the live observation begins.";
+      ? "The assessment window has ended. This is your final selection."
+      : "Watch the full observation before choosing a rating.";
   $("current-rating").textContent = rating
     ? `Selected: ${rating[0].toUpperCase()}${rating.slice(1)}. ${ratingContext}`
-    : (mode === "live" ? "Choose the response that best reflects your assessment." : "Choose a rating when the live observation begins.");
+    : (mode === "assessment"
+      ? "Choose the response that best reflects your assessment."
+      : mode === "ended"
+        ? "Time is up. Select a rating to continue."
+        : "Watch the observation. Your rating choices will appear afterwards.");
   if ($("response-rating-summary")) $("response-rating-summary").textContent = rating ? rating[0].toUpperCase() + rating.slice(1) : "Not yet rated";
-  $("save-continue").disabled = !(mode === "ended" && rating && $("confidence").value);
+  $("save-continue").disabled = !((mode === "assessment" || mode === "ended") && rating && $("confidence").value);
 }
 function addEvent(type, extra = {}) {
   const snapshot = engine ? engine.snapshot() : {};
@@ -169,7 +172,7 @@ function addEvent(type, extra = {}) {
   return event;
 }
 function setSelectedRating(color) {
-  if (mode !== "live" && mode !== "ended") return;
+  if (mode !== "assessment" && !(mode === "ended" && !rating)) return;
   if (!["green", "yellow", "red"].includes(color) || rating === color) return;
   const previous = rating;
   rating = color;
@@ -181,6 +184,7 @@ function setSelectedRating(color) {
     selection_number: ratingEvents.length + 1
   });
   ratingEvents.push(event);
+  if (mode === "ended") setRatingButtons(false);
   paintRating();
   if (draft) {
     draft.last_activity_at = new Date().toISOString();
@@ -192,12 +196,14 @@ function startScenario() {
   hideNotice();
   scenario = scenarioForCurrentIndex();
   engine = new BreathingEngine(scenario);
-  mode = "countdown"; rating = null; firstRating = null; ratingEvents = []; events = [];
+  mode = "observe"; rating = null; firstRating = null; ratingEvents = []; events = [];
   liveAccumulator = 0;
   $("cot-heading").textContent = `Cot ${scenario.cot}`;
   $("baseline-number").textContent = String(scenario.baseline);
-  $("clock").textContent = "Live starts in 3";
+  $("clock").textContent = `Observation: ${OBSERVATION_SECONDS} s`;
+  $("stage-status").textContent = "Observation only";
   $("current-rr").textContent = Math.round(engine.snapshot().rolling_rr_estimate);
+  $("rating-section").hidden = true;
   $("end-panel").hidden = true;
   $("unrealistic").checked = false;
   $("confidence").value = "";
@@ -205,32 +211,31 @@ function startScenario() {
   $("comments").value = "";
   setRatingButtons(false); paintRating(); updateProgress();
   setPanel("sim");
-  let seconds = 3;
-  clearInterval(timerId);
-  timerId = setInterval(() => {
-    seconds--;
-    if (seconds > 0) $("clock").textContent = `Live starts in ${seconds}`;
-    else {
-      clearInterval(timerId); timerId = null; beginLive();
-    }
-  }, 1000);
+  addEvent("observation_started");
 }
-function beginLive() {
-  mode = "live";
-  addEvent("live_observation_started");
+function beginAssessment() {
+  if (mode !== "observe") return;
+  mode = "assessment";
+  addEvent("assessment_started");
+  $("stage-status").textContent = "Assessment";
+  $("rating-section").hidden = false;
+  $("end-panel").hidden = false;
   setRatingButtons(true);
   paintRating();
-  $("clock").textContent = `Live: ${LIVE_SECONDS} s left`;
 }
-function finishLive() {
+function finishAssessment() {
+  if (mode !== "assessment") return;
+  addEvent("assessment_window_ended");
   mode = "ended";
-  $("clock").textContent = "Live observation complete";
-  $("end-panel").hidden = false;
+  $("stage-status").textContent = "Assessment time ended";
+  $("clock").textContent = "Assessment time ended";
+  // If a colour has been selected, lock it. If not, allow one final selection
+  // so an elapsed timer does not trap a participant on the current scenario.
+  setRatingButtons(!rating);
   paintRating();
-  $("end-panel").scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 function saveScenarioResponse() {
-  if (mode !== "ended" || !rating || !$("confidence").value) return;
+  if ((mode !== "assessment" && mode !== "ended") || !rating || !$("confidence").value) return;
   const metadata = getScenarioMetadata(scenario.id);
   const confirmation = addEvent("final_rating_confirmed", {
     color: rating,
@@ -248,7 +253,7 @@ function saveScenarioResponse() {
     unrealistic_baby: $("unrealistic").checked,
     comments: $("comments").value.trim() || null,
     additional_information_needed: $("additional-info").value.trim() || null,
-    observation_started_at: events.find(e => e.event_type === "live_observation_started")?.timestamp || null,
+    observation_started_at: events.find(e => e.event_type === "observation_started")?.timestamp || null,
     selection_change_count: Math.max(0, ratingEvents.length - 1)
   };
   draft.responses.push(response);
@@ -371,13 +376,15 @@ function showThankYou({ title, message, reference = "" }) {
 function animateFrame(now) {
   const dt = Math.min(0.1, Math.max(0, (now - lastFrame) / 1000));
   lastFrame = now;
-  if (mode === "live" && engine) {
+  if ((mode === "observe" || mode === "assessment") && engine) {
     liveAccumulator += dt;
-    while (liveAccumulator >= 0.025 && mode === "live") {
+    while (liveAccumulator >= 0.025 && (mode === "observe" || mode === "assessment")) {
       engine.step(0.025); liveAccumulator -= 0.025;
-      if (engine.t >= scenario.live) { finishLive(); break; }
+      if (mode === "observe" && engine.t >= OBSERVATION_SECONDS) beginAssessment();
+      if (mode === "assessment" && engine.t >= LIVE_SECONDS) finishAssessment();
     }
-    if (mode === "live") $("clock").textContent = `Live: ${Math.max(0, Math.ceil(scenario.live - engine.t))} s left`;
+    if (mode === "observe") $("clock").textContent = `Observation: ${Math.max(0, Math.ceil(OBSERVATION_SECONDS - engine.t))} s left`;
+    else if (mode === "assessment") $("clock").textContent = `Assessment: ${Math.max(0, Math.ceil(LIVE_SECONDS - engine.t))} s left`;
   }
   if (engine && !$("sim").hidden) {
     if (frameCount++ % 30 === 0) refreshCanvasColors();

@@ -197,7 +197,7 @@
       <section id="sim" class="sim-shell" hidden>
         <div class="workspace-header">
           <div>
-            <p class="eyebrow">Live observation</p>
+            <p class="eyebrow">Timed observation</p>
             <h2 id="cot-heading">Cot 1</h2>
           </div>
           <div class="baseline-card">
@@ -212,7 +212,7 @@
               <p class="eyebrow">Visual observation</p>
               <h3>Newborn breathing simulation</h3>
             </div>
-            <span class="live-indicator"><span></span> Live animation</span>
+            <span class="live-indicator"><span></span><span id="stage-status">Observation only</span></span>
           </div>
           <div class="stage"><canvas id="baby" aria-label="Animated newborn lying in a cot and breathing"></canvas></div>
         </div>
@@ -225,7 +225,7 @@
               <p class="muted graph-note">Solid line: rolling estimate · Dashed line: usual rate · Shading: no breaths observed</p>
             </div>
             <div class="clock-block">
-              <span id="clock" aria-live="polite">Preparing observation</span>
+              <span id="clock" aria-live="polite">Observation: 15 s</span>
               <strong><span id="current-rr">—</span><small>breaths/min</small></strong>
             </div>
           </div>
@@ -237,13 +237,13 @@
           </div>
         </section>
 
-        <section class="rating-section">
+        <section class="rating-section" id="rating-section" hidden>
           <div class="rating-heading">
             <div>
               <p class="eyebrow">Your clinical assessment</p>
-              <h2>What would you do?</h2>
+              <h2>Choose your assessment</h2>
             </div>
-            <p class="muted">Select one response. You can update it at any time during the 30-second live observation.</p>
+            <p class="muted">You have up to 30 seconds. Choose a color and confidence rating, then submit to continue. You can change your color selection until you submit.</p>
           </div>
           <div class="rating-buttons" role="group" aria-label="Clinical concern rating">
             <button class="rating-btn green" data-rating="green" aria-pressed="false" disabled>
@@ -259,15 +259,15 @@
               <span class="rating-copy"><strong class="rating-title">Red</strong><span>I would go to this baby now.</span></span>
             </button>
           </div>
-          <p id="current-rating" class="rating-feedback" aria-live="polite">Choose a rating when the live observation begins.</p>
+          <p id="current-rating" class="rating-feedback" aria-live="polite">Watch the observation. Your rating choices will appear afterwards.</p>
         </section>
 
         <section class="panel end-panel" id="end-panel" hidden>
           <div class="completion-heading">
             <span class="completion-check" aria-hidden="true">✓</span>
-            <div><p class="eyebrow">Observation complete</p><h2>Record your final assessment</h2></div>
+            <div><p class="eyebrow">Assessment ready</p><h2>Submit your assessment</h2></div>
           </div>
-          <p class="muted">Your final selected rating is recorded below. Please complete the brief follow-up questions to save this observation.</p>
+          <p class="muted">Your selected color is shown below. Choose your confidence rating, then submit to move to the next video immediately. You do not need to wait for the full 30 seconds.</p>
           <div class="response-summary" id="response-summary">
             <span>Selected assessment</span><strong id="response-rating-summary">Not yet rated</strong>
           </div>
@@ -295,7 +295,7 @@
           </label>
           <div class="end-actions">
             <span class="form-hint">Your response is saved to this session before you move on.</span>
-            <button class="primary" id="save-continue" disabled>Save response and continue <span aria-hidden="true">→</span></button>
+            <button class="primary" id="save-continue" disabled>Submit assessment and continue <span aria-hidden="true">→</span></button>
           </div>
         </section>
       </section>

@@ -21,6 +21,8 @@ const EXPECTED = new Map([
   ["baby-08",{cot:8,baseline:40,programmed:40}]
 ]);
 const RATINGS = new Set(["green","yellow","red"]);
+const OBSERVATION_SECONDS = 15;
+const LIVE_SECONDS = OBSERVATION_SECONDS + 30;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 function response(body:Record<string,unknown>,status=200,origin:string|null=null){
   const headers = new Headers(BASE_HEADERS);
@@ -60,9 +62,10 @@ function validateSubmission(input:any):string|null{
     for(const ev of r.rating_events){
       if(!RATINGS.has(ev?.color))return"A rating event has an invalid rating";
       const liveSeconds=Number(ev?.live_seconds);
-      // The browser advances the live clock in 25 ms increments. Permit only a
-      // 100 ms floating-point boundary tolerance; the payload is normalized below.
-      if(!Number.isFinite(liveSeconds)||liveSeconds < -0.1||liveSeconds > 30.1)return"A rating event has an invalid live timestamp";
+      // Ratings are disabled for the first 15 seconds. The 30-second assessment
+      // window follows it, so rating events must fall in the 15–45 second interval.
+      // Permit only a 100 ms floating-point boundary tolerance.
+      if(!Number.isFinite(liveSeconds)||liveSeconds < OBSERVATION_SECONDS-0.1||liveSeconds > LIVE_SECONDS+0.1)return"A rating event has an invalid live timestamp";
     }
     if(typeof r.simulated_pattern!=="string"||r.simulated_pattern.length>300)return"Invalid simulated pattern metadata";
     if(String(r.comments??"").length>2000||String(r.additional_information_needed??"").length>2000)return"A comment is too long";
@@ -104,7 +107,7 @@ Deno.serve(async(req)=>{
     return response({error:problem,code:"invalid_submission"},400,origin);
   }
   // Normalize sub-100 ms boundary drift caused by 25 ms animation-frame stepping.
-  // Keep stored observation times within the defined 0–30 second interval.
+  // Keep stored observation times within the defined 0–45 second interval.
   for(const r of input.responses){
     for(const ev of [...(r.events??[]),...(r.rating_events??[])]){
       const liveSeconds=Number(ev?.live_seconds);

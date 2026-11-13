@@ -8,7 +8,7 @@ const read = path => readFileSync(new URL(path, import.meta.url), "utf8");
 test("participant page includes the complete consent, observation and questionnaire flow", () => {
   const html = read("../index.html");
   for (const required of [
-    "consent-check", "clinical-role", "neonatal-experience", "Cot 1", "baseline-number",
+    "consent-check", "clinical-role", "neonatal-experience", "Cot 1", "baseline-number", "rating-section", "stage-status",
     'data-rating="green"', 'data-rating="yellow"', 'data-rating="red"',
     "unrealistic", "confidence", "additional-info", "comments", "save-continue",
     "elevated-threshold", "reduced-threshold", "concern-duration", "submit-survey",
@@ -18,6 +18,18 @@ test("participant page includes the complete consent, observation and questionna
   }
   const ids = [...html.matchAll(/id="([^"]+)"/g)].map(match => match[1]);
   assert.equal(ids.length, new Set(ids).size, "Participant HTML IDs must be unique");
+});
+
+test("assessment is hidden during observation and can be submitted before the full window ends", () => {
+  const html = read("../index.html");
+  const app = read("../js/app.js");
+  assert.match(html, /id="rating-section" hidden/);
+  assert.ok(app.includes('mode = "observe"'));
+  assert.ok(app.includes('if (mode !== "assessment" && !(mode === "ended" && !rating)) return;'));
+  assert.ok(app.includes('if (mode === "observe" && engine.t >= OBSERVATION_SECONDS) beginAssessment();'));
+  assert.ok(app.includes('if (mode === "assessment" && engine.t >= LIVE_SECONDS) finishAssessment();'));
+  assert.ok(app.includes('(mode !== "assessment" && mode !== "ended") || !rating'));
+  assert.ok(html.includes("Submit assessment and continue"));
 });
 
 test("all eight scenarios have distinct visual identity variants and valid baselines", () => {
@@ -67,6 +79,10 @@ test("server endpoint validates all scenario IDs, presentation order, metadata a
   assert.ok(fn.includes('req.headers.get("apikey")'));
   assert.ok(fn.includes("23505"));
   assert.ok(fn.includes("rating_events"));
+  assert.ok(fn.includes("const OBSERVATION_SECONDS = 15"));
+  assert.ok(fn.includes("const LIVE_SECONDS = OBSERVATION_SECONDS + 30"));
+  assert.ok(fn.includes("liveSeconds < OBSERVATION_SECONDS-0.1"));
+  assert.ok(fn.includes("liveSeconds > LIVE_SECONDS+0.1"));
   assert.ok(fn.includes('Deno.env.get("RESEARCH_COLLECTION_ENABLED")==="true"'));
   assert.ok(fn.includes('Deno.env.get("APPROVED_CONSENT_VERSION")'));
   assert.ok(fn.includes("researchCollectionEnabled && input.consent_version!==approvedConsentVersion"));

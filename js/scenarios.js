@@ -4,7 +4,9 @@
  * Obtain neonatal-clinical and faculty/ethics approval before recruitment.
  */
 export const HISTORY_SECONDS = 480;
-export const LIVE_SECONDS = 30;
+export const OBSERVATION_SECONDS = 15;
+export const ASSESSMENT_SECONDS = 30;
+export const LIVE_SECONDS = OBSERVATION_SECONDS + ASSESSMENT_SECONDS;
 export const SCENARIO_IDS = ["baby-01","baby-02","baby-03","baby-04","baby-05","baby-06","baby-07","baby-08"];
 const smooth=x=>{x=Math.max(0,Math.min(1,x));return x*x*(3-2*x);};
 const ramp=(t,t0,t1,a,b)=>a+(b-a)*smooth((t-t0)/(t1-t0));
@@ -16,7 +18,7 @@ export const SCENARIOS={
 "baby-05":{id:"baby-05",cot:5,baseline:38,seed:55,live:LIVE_SECONDS,appearance:{skin:"#b87958",skinDark:"#784a35",cap:"#d9c0e2",blanket:"#b9c7df",style:"cap"},pattern:"slow synchronized breathing; gradually decreasing rate",trajectory:"decrease-38-to-24",seesaw:"none",pauses:[],rr:t=>ramp(t,-360,-180,38,24),off:()=>0},
 "baby-06":{id:"baby-06",cot:6,baseline:44,seed:66,live:LIVE_SECONDS,appearance:{skin:"#e2b18f",skinDark:"#a8745a",cap:"#e9d69e",blanket:"#e6b8bb",style:"tuft"},pattern:"rate near baseline; chest and abdomen become asynchronous",trajectory:"stable-around-44",seesaw:"moderate",pauses:[],rr:()=>44,off:t=>ramp(t,-150,-115,0,.34)},
 "baby-07":{id:"baby-07",cot:7,baseline:46,seed:77,live:LIVE_SECONDS,appearance:{skin:"#8e5c43",skinDark:"#5d3c2e",cap:"#b2d9dc",blanket:"#d3d6a9",style:"cap"},pattern:"rate rises, remains elevated, then gradually returns to baseline",trajectory:"rise-46-to-76-then-return-to-46",seesaw:"none",pauses:[],rr:t=>{if(t<-360)return 46;if(t<-300)return ramp(t,-360,-300,46,76);if(t<-150)return 76;return ramp(t,-150,-30,76,46);},off:()=>0},
-"baby-08":{id:"baby-08",cot:8,baseline:40,seed:88,live:LIVE_SECONDS,appearance:{skin:"#cf9474",skinDark:"#8a5d45",cap:"#d8b7aa",blanket:"#b7c8c9",style:"tuft"},pattern:"stable respiratory rate with a 20-second breathing interruption during live observation",trajectory:"stable-around-40-with-20-second-live-pause",seesaw:"none",pauses:[{start:5,dur:20}],rr:()=>40,off:()=>0}
+"baby-08":{id:"baby-08",cot:8,baseline:40,seed:88,live:LIVE_SECONDS,appearance:{skin:"#cf9474",skinDark:"#8a5d45",cap:"#d8b7aa",blanket:"#b7c8c9",style:"tuft"},pattern:"stable respiratory rate with a 20-second breathing interruption during the timed observation and assessment",trajectory:"stable-around-40-with-20-second-live-pause",seesaw:"none",pauses:[{start:5,dur:20}],rr:()=>40,off:()=>0}
 };
 export function shuffleScenarioIds(random=Math.random){const ids=[...SCENARIO_IDS];for(let i=ids.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[ids[i],ids[j]]=[ids[j],ids[i]];}return ids;}
 export function targetRate(id,t){const s=SCENARIOS[id];if(!s)throw new Error(`Unknown scenario: ${id}`);return s.rr(t);}
